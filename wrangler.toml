@@ -1,0 +1,12 @@
+name = "gg-samachar-api"
+main = "worker.js"
+compatibility_date = "2026-09-28"
+
+# Create a NEW D1 database for GG Samachar before enabling the DB binding.
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "gg-samachar-db"
+# database_id = "YOUR_NEW_D1_DATABASE_ID"
+
+[triggers]
+crons = ["0 * * * *"]
