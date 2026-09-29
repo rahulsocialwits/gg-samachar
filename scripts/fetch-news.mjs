@@ -17,4 +17,7 @@ for(const [name,url] of SOURCES){try{const r=await fetch(url,{headers:{"User-Age
 const seen=new Set(),articles=[];
 for(const x of all){if(seen.has(x.url))continue;seen.add(x.url);const d=x.published?new Date(x.published):new Date();articles.push({slug:"news-"+hash(x.url),source_name:x.source_name,source_url:x.url,title_gujarati:x.title,title_english:x.title,title:x.title,summary_gujarati:x.summary,summary_english:x.summary,summary:x.summary,content_gujarati:x.summary,content_english:x.summary,category:category(x.title),city:"",image_url:x.image_url||"",published_at:Number.isNaN(d.getTime())?new Date().toISOString():d.toISOString()})}
 articles.sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));
+if(articles.length<3){
+  try{const old=JSON.parse(await Bun.file("assets/data/news.json").text());if(Array.isArray(old.articles)&&old.articles.length>=3){console.log("RSS returned too few stories; preserving previous feed.");process.exit(0)}}catch{}
+}
 await Bun.write("assets/data/news.json",JSON.stringify({generated_at:new Date().toISOString(),source_count:SOURCES.length,article_count:articles.length,articles:articles.slice(0,80)},null,2));
