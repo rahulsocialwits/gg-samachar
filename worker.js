@@ -14,7 +14,7 @@ const SOURCES=[
   {name:"Gujarati Oneindia World",feed:"https://gujarati.oneindia.com/rss/feeds/gujarati-news-world-fb.xml",home:"https://gujarati.oneindia.com/"}
 ];
 const CITIES={Ahmedabad:[23.0225,72.5714,"અમદાવાદ"],Surat:[21.1702,72.8311,"સુરત"],Rajkot:[22.3039,70.8022,"રાજકોટ"],Vadodara:[22.3072,73.1812,"વડોદરા"],Gandhinagar:[23.2156,72.6369,"ગાંધીનગર"],Bhuj:[23.242,69.6669,"ભુજ"],Bhavnagar:[21.7645,72.1519,"ભાવનગર"],Jamnagar:[22.4707,70.0577,"જામનગર"],Junagadh:[21.5222,70.4579,"જૂનાગઢ"],Mehsana:[23.588,72.3693,"મહેસાણા"]};
-function json(x,s=200){return new Response(JSON.stringify(x),{status:s,headers:{"Content-Type":"application/json;charset=utf-8",...CORS}})}
+function json(x,s=200){return new Response(JSON.stringify(x),{status:s,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":"no-store, no-cache, must-revalidate, proxy-revalidate","Pragma":"no-cache",...CORS}})}
 function clean(s){return String(s||"").replace(/<!\[CDATA\[/gi,"").replace(/\]\]>/gi,"").replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ").replace(/&amp;/gi,"&").replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/&lt;/gi,"<").replace(/&gt;/gi,">").replace(/&nbsp;/gi," ").replace(/\s+/g," ").trim()}
 function tag(b,n){const m=b.match(new RegExp("<"+n+"(?:\\:[^ >]+)?[^>]*>([\\s\\S]*?)<\\/"+n+">","i"));return clean(m?.[1]||"")}
 function attr(b,names){for(const n of names){const m=b.match(new RegExp(n+"\\s*=\\s*[\"']([^\"']+)[\"']","i"));if(m)return m[1]}return""}
