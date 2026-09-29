@@ -14,7 +14,7 @@ async function staticNews(path){
   const j=await r.json();
   let d=j.articles||[];
   const u=new URL(path,location.origin);
-  const slug=u.pathname.startsWith("/article/")?decodeURIComponent(u.pathname.split("/").pop()):"";
+  const slug=u.searchParams.get("slug")|| (u.pathname.startsWith("/article/")?decodeURIComponent(u.pathname.split("/").pop()):"");
   if(slug)return {article:d.find(x=>x.slug===slug)||null};
   const cat=u.searchParams.get("category"),city=u.searchParams.get("city"),q=u.searchParams.get("q");
   if(cat)d=d.filter(x=>(x.category||"").toLowerCase()===cat.toLowerCase());
