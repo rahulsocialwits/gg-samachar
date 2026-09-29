@@ -220,3 +220,42 @@ footer{background:#0d1822;padding:48px 0 20px}
   .article-lead{font-size:16px;line-height:1.9}
   .article-content{font-size:16px;line-height:1.95}
 }
+
+
+/* GG Samachar final visual polish */
+:root{--gg-red:#c51f2b;--gg-red-dark:#991722;--gg-yellow:#f4c542;--gg-yellow-soft:#fff8dc;--gg-navy:#13263a}
+body{background:#fff;color:#17222d}
+.topline{background:var(--gg-navy);border-bottom:3px solid var(--gg-yellow)}
+.site-header{border-bottom:1px solid #eceff2}
+.brand b{background:var(--gg-red);position:relative}
+.brand b:after{content:"";position:absolute;bottom:-4px;left:7px;right:7px;height:3px;border-radius:2px;background:var(--gg-yellow)}
+.breaking{background:var(--gg-red)}
+.breaking strong{background:var(--gg-yellow);color:#442f00}
+.market-strip a:first-child,.market-strip a:nth-child(3){border-top:3px solid var(--gg-yellow)}
+.market-strip a:nth-child(2),.market-strip a:nth-child(4){border-top:3px solid var(--gg-red)}
+.market-strip a:hover{border-color:#d8aeb1}
+.lead-news{border:1px solid #e7d0d2;box-shadow:0 18px 45px rgba(197,31,43,.12)}
+.lead-overlay .tag-light{background:var(--gg-yellow);color:#3b2c00}
+.section-head{position:relative}
+.section-head:after{content:"";position:absolute;left:0;bottom:-9px;width:42px;height:3px;background:var(--gg-yellow);border-radius:2px}
+.story{box-shadow:0 4px 16px rgba(20,37,54,.045)}
+.story:hover{border-color:#dfb1b5}
+.story-art{background:linear-gradient(145deg,#172d42,#b51f2a)}
+.story-art span{background:var(--gg-red)}
+.tinted{background:linear-gradient(180deg,#fffdf4,#f8f9fa);border-top:1px solid #f2e5b5;border-bottom:1px solid #eceff2}
+.mini-heading{border-bottom-color:var(--gg-red)}
+.mini-heading:after{content:"";display:block;width:34px;height:3px;background:var(--gg-yellow);position:absolute}
+.filter .selected,.filter button:hover,.filter a:hover,.city-grid button:hover,.city-grid a:hover{background:var(--gg-red);border-color:var(--gg-red)}
+.big-search button,.market-search button{background:var(--gg-red)}
+.article-language button.active{background:var(--gg-red);border-color:var(--gg-red)}
+.calendar-date{background:linear-gradient(145deg,var(--gg-red),var(--gg-red-dark));border-top:5px solid var(--gg-yellow)}
+.dark-section{background:var(--gg-navy);border-top:4px solid var(--gg-yellow)}
+.desk-grid a{background:#19344c}
+footer{background:#0b1824;border-top:4px solid var(--gg-red)}
+footer .brand b{background:var(--gg-red)}
+.loading{background:#fafbfc}
+@media(max-width:520px){
+ .brand b{width:36px;height:36px}
+ .market-strip a{border-top-width:2px}
+ .section-head:after{bottom:-7px}
+}
