@@ -1,9 +1,5 @@
 const API="https://gg-samachar.rahulsocialwits.workers.dev";
-const FALLBACK_DEMO=[
-{slug:"demo-gg-samachar-1",category:"Gujarat",source_name:"GG Samachar",title_gujarati:"ગુજરાતમાં નવી સવાર: સ્થાનિક સમાચાર માટે GG Samachar હવે વધુ ઝડપી",summary_gujarati:"આ ડેમો સ્ટોરી નવા ન્યૂઝરૂમનું લેઆઉટ અને કન્ટેન્ટ ફ્લો બતાવવા માટે છે."},
-{slug:"demo-gg-samachar-2",category:"Technology",source_name:"GG Samachar",title_gujarati:"ડિજિટલ ન્યૂઝરૂમમાં હવે તાજા સમાચાર માટે ઝડપી અપડેટ સિસ્ટમ",summary_gujarati:"દર 30 મિનિટે સમાચાર સ્રોતો તપાસવાની automation સાથે નવી stories લાવવાનું setup તૈયાર છે."},
-{slug:"demo-gg-samachar-3",category:"Gujarat",source_name:"GG Samachar",title_gujarati:"ગુજરાતી ભાષામાં સમાચાર વાંચવા માટે નવી સ્વચ્છ અને સરળ ડિઝાઇન",summary_gujarati:"મુખ્ય સમાચાર અને વિવિધ sections સાથે mobile-first વાંચન અનુભવ."}
-];
+const FALLBACK_DEMO=[];
 
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -18,6 +14,7 @@ async function staticNews(path){
   if(slug)return {article:d.find(x=>x.slug===slug)||null};
   const cat=u.searchParams.get("category"),city=u.searchParams.get("city"),q=u.searchParams.get("q");
   if(cat)d=d.filter(x=>(x.category||"").toLowerCase()===cat.toLowerCase());
+  if(city)d=d.filter(x=>(x.city||"").toLowerCase()===city.toLowerCase());
   if(q){const z=q.toLowerCase();d=d.filter(x=>(x.title+" "+x.summary+" "+x.category+" "+x.source_name).toLowerCase().includes(z))}
   const limit=Number(u.searchParams.get("limit")||24);
   return {articles:d.slice(0,limit),total:d.length};
@@ -34,7 +31,7 @@ async function api(path,opt={}){
 }
 function card(x){const img=x.image_url?'<img src="'+esc(x.image_url)+'" alt="'+esc(x.title_gujarati||"")+'" loading="lazy">':"";return '<article class="story"><a href="article.html?slug='+encodeURIComponent(x.slug||"")+'"><div class="story-art '+(img?"has-image":"")+'">'+img+'<span>'+esc(x.category||"સમાચાર")+'</span></div><div class="story-body"><div class="tag">'+esc(x.category||"સમાચાર")+'</div><h3>'+esc(x.title_gujarati||x.title||"સમાચાર")+'</h3><p>'+esc(x.summary_gujarati||x.summary||"")+'</p><div class="meta">'+esc(x.source_name||"GG Samachar")+' · '+(x.published_at?new Date(x.published_at).toLocaleDateString("gu-IN"):"હમણાં")+'</div></div></a></article>'}
 function miniCard(x){const img=x.image_url?'<img src="'+esc(x.image_url)+'" alt="" loading="lazy">':'<div class="side-noimg"></div>';return '<a class="mini-item" href="article.html?slug='+encodeURIComponent(x.slug||"")+'">'+img+'<div><div class="tag">'+esc(x.category||"સમાચાર")+'</div><h3>'+esc(x.title_gujarati||x.title||"")+'</h3><div class="meta">'+esc(x.source_name||"GG Samachar")+'</div></div></a>'}
-async function homeNews(){const grid=$("#newsGrid");if(!grid)return;try{const j=await api("/articles?limit=24&_t="+Date.now()),d=(j.articles||[]).length?(j.articles||[]):FALLBACK_DEMO;const first=d[0];if(!first){grid.innerHTML='<div class="empty">હાલમાં સમાચાર ઉપલબ્ધ નથી.</div>';return}$("#ticker")&&( $("#ticker").textContent=first.title_gujarati||first.title );
+async function homeNews(){const grid=$("#newsGrid");if(!grid)return;try{const j=await api("/articles?limit=24&_t="+Date.now()),d=j.articles||[];const first=d[0];if(!first){grid.innerHTML='<div class="empty">હાલમાં સમાચાર ઉપલબ્ધ નથી.</div>';return}$("#ticker")&&( $("#ticker").textContent=first.title_gujarati||first.title );
 const hero=$("#heroStory");hero.innerHTML=(first.image_url?'<img src="'+esc(first.image_url)+'" alt="">':"")+'<div class="lead-overlay"><div class="tag-light">FEATURED · '+esc(first.category||"NEWS")+'</div><h1>'+esc(first.title_gujarati||"")+'</h1><p>'+esc(first.summary_gujarati||first.summary_english||"")+'</p><a class="btn" href="article.html?slug='+encodeURIComponent(first.slug)+'">પૂર્ણ સમાચાર વાંચો →</a></div>';
 $("#sideStories").innerHTML=d.slice(1,5).map(miniCard).join("")||'<div class="empty">વધુ સમાચાર માટે Latest જુઓ.</div>';
 grid.innerHTML=d.slice(5,11).map(card).join("")||d.slice(0,6).map(card).join("");
@@ -42,8 +39,8 @@ const by=(cat)=>d.filter(x=>(x.category||"").toLowerCase()===cat.toLowerCase());
 const g=$("#gujaratGrid");if(g)g.innerHTML=by("Gujarat").slice(0,4).map(card).join("")||d.slice(0,4).map(card).join("");
 const i=$("#indiaGrid");if(i)i.innerHTML=by("India").slice(0,5).map(miniCard).join("")||'<div class="empty">ભારતના સમાચાર લોડ થશે.</div>';
 const w=$("#worldGrid");if(w)w.innerHTML=by("World").slice(0,5).map(miniCard).join("")||'<div class="empty">વિશ્વના સમાચાર લોડ થશે.</div>';
-}catch(e){const d=FALLBACK_DEMO,first=d[0];if(grid){grid.innerHTML=d.map(card).join("");const hero=$("#heroStory");if(hero)hero.innerHTML='<div class="lead-overlay"><div class="tag-light">GG SAMACHAR</div><h1>'+esc(first.title_gujarati)+'</h1><p>'+esc(first.summary_gujarati)+'</p></div>';const t=$("#ticker");if(t)t.textContent=first.title_gujarati;}}}
-async function loadNews(){const grid=$("#newsGrid");if(!grid||$("#heroStory"))return;grid.innerHTML='<div class="loading">સમાચાર લોડ થઈ રહ્યા છે…</div>';try{const q=new URLSearchParams(location.search),p=new URLSearchParams();if(q.get("category"))p.set("category",q.get("category"));if(q.get("city"))p.set("city",q.get("city"));if(q.get("q"))p.set("q",q.get("q"));p.set("limit","30");const j=await api("/articles?"+p+"&_t="+Date.now());const d=j.articles||[];grid.innerHTML=d.length?d.map(card).join(""):'<div class="empty">હાલમાં કોઈ સમાચાર ઉપલબ્ધ નથી.</div>';const t=$("#ticker");if(t&&d[0])t.textContent=d[0].title_gujarati||d[0].title}catch(e){grid.innerHTML=FALLBACK_DEMO.map(card).join("");}}
+}catch(e){if(grid)grid.innerHTML='<div class="empty">લાઇવ સમાચાર હાલમાં ઉપલબ્ધ નથી. થોડીવાર પછી ફરી પ્રયાસ કરો.</div>';const hero=$("#heroStory");if(hero)hero.innerHTML='<div class="lead-overlay"><div class="tag-light">GG SAMACHAR</div><h1>લાઇવ સમાચાર લોડ થઈ રહ્યા છે…</h1><p>ન્યૂઝ ફીડ ફરી પ્રયાસ કરી રહી છે.</p></div>';}
+async function loadNews(){const grid=$("#newsGrid");if(!grid||$("#heroStory"))return;grid.innerHTML='<div class="loading">સમાચાર લોડ થઈ રહ્યા છે…</div>';try{const q=new URLSearchParams(location.search),p=new URLSearchParams();if(q.get("category"))p.set("category",q.get("category"));if(q.get("city"))p.set("city",q.get("city"));if(q.get("q"))p.set("q",q.get("q"));p.set("limit","30");const j=await api("/articles?"+p+"&_t="+Date.now());const d=j.articles||[];grid.innerHTML=d.length?d.map(card).join(""):'<div class="empty">હાલમાં કોઈ સમાચાર ઉપલબ્ધ નથી.</div>';const t=$("#ticker");if(t&&d[0])t.textContent=d[0].title_gujarati||d[0].title}catch(e){grid.innerHTML='<div class="empty">લાઇવ સમાચાર હાલમાં ઉપલબ્ધ નથી.</div>';}}
 function initFilters(){$$(".filter button").forEach(b=>b.onclick=()=>location.href=b.dataset.category?"latest.html?category="+encodeURIComponent(b.dataset.category):"latest.html");$$(".city-grid a").forEach(a=>a.onclick=e=>{if(location.pathname.endsWith("category.html"))return;e.preventDefault();location.href=a.href})}
 function initMenu(){const b=$("#menu"),n=document.querySelector("nav");if(b&&n)b.onclick=()=>n.classList.toggle("open")}
 function initDate(){const d=new Date(),m=["જાન્યુઆરી","ફેબ્રુઆરી","માર્ચ","એપ્રિલ","મે","જૂન","જુલાઈ","ઑગસ્ટ","સપ્ટેમ્બર","ઑક્ટોબર","નવેમ્બર","ડિસેમ્બર"];if($("#dateMini"))$("#dateMini").textContent=d.getDate()+" "+m[d.getMonth()];if($("#liveDate"))$("#liveDate").textContent=d.toLocaleDateString("gu-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
@@ -67,8 +64,8 @@ async function initArticle(){
     if(j.article){renderArticle(j.article);return}
     throw Error("Article not found");
   }catch(e){
-    const demo=FALLBACK_DEMO.find(x=>x.slug===slug);
-    if(demo)renderArticle({...demo,content_gujarati:demo.summary_gujarati,content_english:demo.summary_gujarati});
+    const local=await staticNews("/article/"+encodeURIComponent(slug));
+    if(local.article)renderArticle(local.article);
     else el.innerHTML='<div class="empty"><strong>Article load થઈ શક્યું નથી.</strong><p>API/deployment response મળ્યો નથી અથવા article ઉપલબ્ધ નથી.</p><a class="btn-link" href="latest.html">તાજા સમાચાર પર પાછા જાઓ →</a></div>';
   }
 }
