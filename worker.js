@@ -1,3 +1,4 @@
+// GG Samachar Worker — deployment pipeline verified for Node 22 / Wrangler 4
 const CORS={
   "Access-Control-Allow-Origin":"*",
   "Access-Control-Allow-Methods":"GET,POST,PUT,PATCH,DELETE,OPTIONS",
