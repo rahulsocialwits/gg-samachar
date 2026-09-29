@@ -8,4 +8,4 @@ database_name = "gg-samachar-db"
 database_id = "9520174b-236c-48b9-baa0-1ee16fdf6cb4"
 
 [triggers]
-crons = ["0 * * * *"]
+crons = ["*/30 * * * *"]
