@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-09-29T17:33:56.591Z",
+  "source_count": 6,
+  "article_count": 3,
+  "articles": [
+    {
+      "slug": "demo-gg-samachar-1",
+      "source_name": "GG Samachar Demo",
+      "title_gujarati": "ગુજરાતમાં નવી સવાર: સ્થાનિક સમાચાર માટે GG Samachar હવે વધુ ઝડપી",
+      "title_english": "GG Samachar newsroom is now faster and easier to follow",
+      "title": "ગુજરાતમાં નવી સવાર: સ્થાનિક સમાચાર માટે GG Samachar હવે વધુ ઝડપી",
+      "summary_gujarati": "લાઇવ સમાચાર આવતા જ આ ડેમો સ્ટોરીની જગ્યાએ તાજા સમાચાર દેખાશે.",
+      "summary_english": "Live stories will replace this demo as soon as the feed automation runs.",
+      "summary": "લાઇવ સમાચાર આવતા જ આ ડેમો સ્ટોરીની જગ્યાએ તાજા સમાચાર દેખાશે.",
+      "category": "Gujarat",
+      "city": "Ahmedabad",
+      "image_url": "",
+      "published_at": "2026-09-29T17:33:56.591Z"
+    },
+    {
+      "slug": "demo-gg-samachar-2",
+      "source_name": "GG Samachar Demo",
+      "title_gujarati": "ડિજિટલ ન્યૂઝરૂમમાં હવે ઝડપી અપડેટ સિસ્ટમ",
+      "title_english": "A faster update system for the newsroom",
+      "title": "ડિજિટલ ન્યૂઝરૂમમાં હવે ઝડપી અપડેટ સિસ્ટમ",
+      "summary_gujarati": "દર 30 મિનિટે RSS સ્રોતોમાંથી સમાચાર મેળવવા માટે automation તૈયાર છે.",
+      "summary_english": "The automation checks configured RSS sources every 30 minutes.",
+      "summary": "દર 30 મિનિટે RSS સ્રોતોમાંથી સમાચાર મેળવવા માટે automation તૈયાર છે.",
+      "category": "Technology",
+      "city": "",
+      "image_url": "",
+      "published_at": "2026-09-29T17:33:56.591Z"
+    },
+    {
+      "slug": "demo-gg-samachar-3",
+      "source_name": "GG Samachar Demo",
+      "title_gujarati": "ગુજરાતી ભાષામાં સમાચાર માટે સ્વચ્છ અને સરળ ડિઝાઇન",
+      "title_english": "A cleaner Gujarati-first news design",
+      "title": "ગુજરાતી ભાષામાં સમાચાર માટે સ્વચ્છ અને સરળ ડિઝાઇન",
+      "summary_gujarati": "આ ડેમો માત્ર live feed શરૂ થાય ત્યાં સુધી preview માટે છે.",
+      "summary_english": "This demo is only a preview until the live feed runs.",
+      "summary": "આ ડેમો માત્ર live feed શરૂ થાય ત્યાં સુધી preview માટે છે.",
+      "category": "Gujarat",
+      "city": "",
+      "image_url": "",
+      "published_at": "2026-09-29T17:33:56.591Z"
+    }
+  ]
+}
