@@ -259,3 +259,5 @@ footer .brand b{background:var(--gg-red)}
  .market-strip a{border-top-width:2px}
  .section-head:after{bottom:-7px}
 }
+
+.other-drawer{position:fixed;inset:0;z-index:120;background:rgba(7,13,19,.52);display:flex;align-items:flex-end;justify-content:center;padding:0 8px 72px;opacity:0;visibility:hidden;pointer-events:none;transition:.2s}.other-inner{width:min(620px,100%);background:#fff;border-radius:18px 18px 0 0;padding:15px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.other-inner>b{grid-column:1/-1}.other-inner a{padding:12px;border:1px solid var(--line);border-radius:10px}.other-inner button{position:absolute;right:24px}.other-open .other-drawer{opacity:1;visibility:visible;pointer-events:auto}.btn-link{display:inline-flex;margin-top:10px;padding:9px 13px;border-radius:8px;background:#c51f2b;color:#fff;font-size:11px}.market-row span:first-child{display:flex;flex-direction:column}.market-row small{color:var(--muted);font-size:8px}.market-row em{font-style:normal;margin-left:5px;font-size:9px}.market-row em.up{color:#18834d}.market-row em.down{color:#c51f2b}
