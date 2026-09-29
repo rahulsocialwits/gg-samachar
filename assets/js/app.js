@@ -8,7 +8,30 @@ const FALLBACK_DEMO=[
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const cities={Ahmedabad:[23.0225,72.5714,"અમદાવાદ"],Surat:[21.1702,72.8311,"સુરત"],Rajkot:[22.3039,70.8022,"રાજકોટ"],Vadodara:[22.3072,73.1812,"વડોદરા"],Gandhinagar:[23.2156,72.6369,"ગાંધીનગર"],Bhuj:[23.242,69.6669,"ભુજ"],Bhavnagar:[21.7645,72.1519,"ભાવનગર"],Jamnagar:[22.4707,70.0577,"જામનગર"],Junagadh:[21.5222,70.4579,"જૂનાગઢ"],Mehsana:[23.588,72.3693,"મહેસાણા"]};
-async function api(path,opt={}){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),9000);try{const r=await fetch(API+path,{...opt,signal:controller.signal,headers:{"Content-Type":"application/json",...(opt.headers||{})}});const j=await r.json();if(!r.ok)throw Error(j.error||"API error");return j}finally{clearTimeout(timer)}}
+async function staticNews(path){
+  const r=await fetch("assets/data/news.json?_t="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw Error("Static news unavailable");
+  const j=await r.json();
+  let d=j.articles||[];
+  const u=new URL(path,location.origin);
+  const slug=u.pathname.startsWith("/article/")?decodeURIComponent(u.pathname.split("/").pop()):"";
+  if(slug)return {article:d.find(x=>x.slug===slug)||null};
+  const cat=u.searchParams.get("category"),city=u.searchParams.get("city"),q=u.searchParams.get("q");
+  if(cat)d=d.filter(x=>(x.category||"").toLowerCase()===cat.toLowerCase());
+  if(q){const z=q.toLowerCase();d=d.filter(x=>(x.title+" "+x.summary+" "+x.category+" "+x.source_name).toLowerCase().includes(z))}
+  const limit=Number(u.searchParams.get("limit")||24);
+  return {articles:d.slice(0,limit),total:d.length};
+}
+async function api(path,opt={}){
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),9000);
+  try{
+    const r=await fetch(API+path,{...opt,signal:controller.signal,headers:{"Content-Type":"application/json",...(opt.headers||{})}});
+    const j=await r.json();if(!r.ok)throw Error(j.error||"API error");return j;
+  }catch(e){
+    if(/^\\/(articles|article\\/)/.test(path))return staticNews(path);
+    throw e;
+  }finally{clearTimeout(timer)}
+}
 function card(x){const img=x.image_url?'<img src="'+esc(x.image_url)+'" alt="'+esc(x.title_gujarati||"")+'" loading="lazy">':"";return '<article class="story"><a href="article.html?slug='+encodeURIComponent(x.slug||"")+'"><div class="story-art '+(img?"has-image":"")+'">'+img+'<span>'+esc(x.category||"સમાચાર")+'</span></div><div class="story-body"><div class="tag">'+esc(x.category||"સમાચાર")+'</div><h3>'+esc(x.title_gujarati||x.title||"સમાચાર")+'</h3><p>'+esc(x.summary_gujarati||x.summary||"")+'</p><div class="meta">'+esc(x.source_name||"GG Samachar")+' · '+(x.published_at?new Date(x.published_at).toLocaleDateString("gu-IN"):"હમણાં")+'</div></div></a></article>'}
 function miniCard(x){const img=x.image_url?'<img src="'+esc(x.image_url)+'" alt="" loading="lazy">':'<div class="side-noimg"></div>';return '<a class="mini-item" href="article.html?slug='+encodeURIComponent(x.slug||"")+'">'+img+'<div><div class="tag">'+esc(x.category||"સમાચાર")+'</div><h3>'+esc(x.title_gujarati||x.title||"")+'</h3><div class="meta">'+esc(x.source_name||"GG Samachar")+'</div></div></a>'}
 async function homeNews(){const grid=$("#newsGrid");if(!grid)return;try{const j=await api("/articles?limit=24&_t="+Date.now()),d=(j.articles||[]).length?(j.articles||[]):FALLBACK_DEMO;const first=d[0];if(!first){grid.innerHTML='<div class="empty">હાલમાં સમાચાર ઉપલબ્ધ નથી.</div>';return}$("#ticker")&&( $("#ticker").textContent=first.title_gujarati||first.title );
