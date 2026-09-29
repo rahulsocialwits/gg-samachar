@@ -4,13 +4,12 @@ const CORS={
   "Access-Control-Allow-Headers":"Content-Type,Authorization,X-Admin-Key"
 };
 const SOURCES=[
-  {name:"TV9 Gujarati",feed:"https://news.google.com/rss/search?q=site%3Atv9gujarati.com&hl=gu-IN&gl=IN&ceid=IN:gu",home:"https://tv9gujarati.com/"},
-  {name:"I Am Gujarat",feed:"https://www.iamgujarat.com/rss",home:"https://www.iamgujarat.com/"},
-  {name:"Google News Gujarati",feed:"https://news.google.com/rss?hl=gu-IN&gl=IN&ceid=IN:gu",home:"https://news.google.com/"},
+  {name:"TV9 Gujarati",feed:"https://tv9gujarati.com/gujarat/feed",home:"https://tv9gujarati.com/"},
   {name:"Gujarat Samachar",feed:"https://www.gujaratsamachar.com/rss/top-stories",home:"https://www.gujaratsamachar.com/"},
   {name:"Divya Bhaskar",feed:"https://www.divyabhaskar.co.in/rss-feed/1037/",home:"https://www.divyabhaskar.co.in/"},
-  {name:"News18 Gujarati",feed:"https://news.google.com/rss/search?q=site%3Agujarati.news18.com&hl=gu-IN&gl=IN&ceid=IN:gu",home:"https://gujarati.news18.com/"},
-  {name:"ABP Asmita",feed:"https://news.google.com/rss/search?q=site%3Agujarati.abplive.com&hl=gu-IN&gl=IN&ceid=IN:gu",home:"https://gujarati.abplive.com/"}
+  {name:"News18 World",feed:"https://www.news18.com/rss/world.xml",home:"https://www.news18.com/"},
+  {name:"The Hindu",feed:"https://www.thehindu.com/feeder/default.rss",home:"https://www.thehindu.com/"},
+  {name:"Indian Express",feed:"https://indianexpress.com/print/front-page/feed/",home:"https://indianexpress.com/"}
 ];
 const CITIES={Ahmedabad:[23.0225,72.5714,"અમદાવાદ"],Surat:[21.1702,72.8311,"સુરત"],Rajkot:[22.3039,70.8022,"રાજકોટ"],Vadodara:[22.3072,73.1812,"વડોદરા"],Gandhinagar:[23.2156,72.6369,"ગાંધીનગર"],Bhuj:[23.242,69.6669,"ભુજ"],Bhavnagar:[21.7645,72.1519,"ભાવનગર"],Jamnagar:[22.4707,70.0577,"જામનગર"],Junagadh:[21.5222,70.4579,"જૂનાગઢ"],Mehsana:[23.588,72.3693,"મહેસાણા"]};
 function json(x,s=200){return new Response(JSON.stringify(x),{status:s,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":"no-store, no-cache, must-revalidate, proxy-revalidate","Pragma":"no-cache",...CORS}})}
@@ -27,7 +26,7 @@ async function ensureSchema(db){await db.batch([
   db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_published_at ON articles(published_at DESC)"),
   db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category)"),
   db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_city ON articles(city)")
-]);for(const s of SOURCES)await db.prepare("INSERT INTO sources(name,feed_url,homepage_url,enabled) VALUES(?,?,?,1) ON CONFLICT(name) DO UPDATE SET feed_url=excluded.feed_url,homepage_url=excluded.homepage_url,enabled=1").bind(s.name,s.feed,s.home).run();for(const legacy of ["TV9 Gujarati","IAM Gujarat","Gujarat Samachar","Divya Bhaskar","News18 Gujarati"])await db.prepare("UPDATE sources SET enabled=0 WHERE name=?").bind(legacy).run()}
+]);for(const s of SOURCES)await db.prepare("INSERT INTO sources(name,feed_url,homepage_url,enabled) VALUES(?,?,?,1) ON CONFLICT(name) DO UPDATE SET feed_url=excluded.feed_url,homepage_url=excluded.homepage_url,enabled=1").bind(s.name,s.feed,s.home).run();for(const legacy of ["IAM Gujarat","Google News Gujarati","News18 Gujarati","ABP Asmita"])await db.prepare("UPDATE sources SET enabled=0 WHERE name=?").bind(legacy).run()}
 async function articleImage(url){if(!url)return"";try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000),r=await fetch(url,{signal:c.signal,headers:{"User-Agent":"Mozilla/5.0 GG-Samachar/1.0"}});clearTimeout(t);if(!r.ok)return"";const h=await r.text();const p=[/property=["']og:image["'][^>]+content=["']([^"']+)["']/i,/content=["']([^"']+)["'][^>]+property=["']og:image["']/i,/name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,/content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i];for(const x of p){const m=h.match(x);if(m?.[1])return m[1]}return""}catch{return""}}
 async function ai(env,item){
   if(!env.GROQ_API_KEY)return null;
@@ -49,7 +48,7 @@ async function collect(env){
       if(!rr.ok){errors++;continue}
       const items=parseFeed(await rr.text(),source);
       fetched+=items.length;
-      for(const item of items.slice(0,5)){
+      for(const item of items.slice(0,4)){
         if(!item.url||!item.title)continue;
         if(await env.DB.prepare("SELECT id FROM articles WHERE source_url=?").bind(item.url).first()){skipped++;continue}
         try{
@@ -57,7 +56,7 @@ async function collect(env){
           try{a=await ai(env,item)}catch{}
           const fallbackCategory=/india|national|bharat/i.test(item.title)?"India":/world|america|pakistan|china|global/i.test(item.title)?"World":"Gujarat";
           const publishedAt=isoDate(item.published,now);
-          const img=item.image||await articleImage(item.url);
+          const img=item.image||"";
           const titleGu=a?.title_gujarati||item.title;
           const titleEn=a?.title_english||item.title;
           const summaryGu=a?.summary_gujarati||item.description||"";
