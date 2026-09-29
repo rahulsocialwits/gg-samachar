@@ -22,3 +22,201 @@ footer{background:#0f1116;color:#fff;padding:42px 0 18px;margin-top:25px}.footer
 @media(max-width:1050px){.nav nav{gap:12px}.nav nav a:nth-child(n+6){display:none}.compact-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:800px){body{padding-bottom:68px}.topline,.category-bar{display:none}.nav{min-height:62px}.nav nav{display:none}.nav nav.open{display:flex;position:absolute;top:62px;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);padding:15px 20px;flex-direction:column;gap:13px}.nav #menu{display:block;margin-left:auto}.header-search{display:none}.wrap{width:min(var(--wrap),calc(100% - 24px))}.market-strip{grid-template-columns:repeat(2,1fr)}.home-lead{grid-template-columns:1fr}.lead-news{min-height:390px}.side-news{display:grid;grid-template-columns:1fr 1fr}.news-grid,.compact-grid{grid-template-columns:repeat(2,1fr)}.two-column-news,.market-layout{grid-template-columns:1fr}.desk-grid{grid-template-columns:repeat(2,1fr)}.market-cards{grid-template-columns:repeat(2,1fr)}.calendar-main{grid-template-columns:1fr}.forecast{grid-template-columns:repeat(4,1fr)}.footer-grid{grid-template-columns:1fr}.mobile-bottom{display:grid;position:fixed;z-index:100;left:8px;right:8px;bottom:8px;height:58px;background:rgba(20,22,27,.97);border-radius:16px;grid-template-columns:repeat(5,1fr);box-shadow:0 10px 30px rgba(0,0,0,.25);padding:4px}.mobile-bottom a,.mobile-bottom button{border:0;background:none;color:#aeb4bd;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:9px}.mobile-bottom .mi{font-size:18px;line-height:18px}.mobile-bottom .active{color:#fff}.mobile-bottom .active .mi{color:#ff7479}}
 @media(max-width:520px){.market-strip{grid-template-columns:1fr 1fr}.market-strip a{padding:10px}.market-strip b{font-size:9px}.home-lead{margin-top:3px}.lead-news{min-height:350px}.lead-overlay{padding:20px}.lead-overlay h1{font-size:27px}.side-news{display:flex}.side-story{grid-template-columns:92px 1fr}.side-story img,.side-story .side-noimg{width:92px;height:68px}.news-grid,.compact-grid{grid-template-columns:1fr}.story-art{height:190px}.section,.home-section{padding:38px 0}.section-head h2,.split-heading h2{font-size:23px}.weather-card{grid-template-columns:1fr;padding:22px}.weather-stats{grid-template-columns:repeat(3,1fr)}.forecast{grid-template-columns:repeat(2,1fr)}.market-cards{gap:7px}.market-cards>div{padding:15px}.market-note{flex-direction:column}.big-search,.market-search{margin-top:20px}.big-search button,.market-search button{padding:12px}.calendar-date strong{font-size:60px}}
+
+
+/* =========================================================
+   GG SAMACHAR — NEWSROOM UI REFRESH
+   Gujarati-first typography + cleaner editorial system
+   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --ink:#18212b;
+  --muted:#66717d;
+  --soft:#f5f7f8;
+  --line:#e3e7eb;
+  --paper:#ffffff;
+  --brand:#b51f2a;
+  --brand-dark:#8f1620;
+  --brand-soft:#fff1f2;
+  --gold:#e3a51a;
+  --navy:#142536;
+  --dark:#101820;
+  --wrap:1280px;
+  --radius:14px;
+  --shadow:0 10px 30px rgba(20,37,54,.08);
+}
+
+body{
+  color:var(--ink);
+  font-family:'Noto Sans Gujarati',Poppins,system-ui,sans-serif;
+  background:#fff;
+  font-size:14px;
+  line-height:1.6;
+}
+body,button,input{font-synthesis:none}
+a{transition:color .18s ease,background .18s ease,border-color .18s ease,transform .18s ease}
+.wrap{width:min(var(--wrap),calc(100% - 48px))}
+
+/* Header */
+.topline{background:var(--navy);border:0;color:#c9d2db}
+.top-inner{height:32px;font-size:10px}
+.site-header{background:rgba(255,255,255,.98);box-shadow:0 2px 16px rgba(16,24,32,.04)}
+.nav{min-height:76px;gap:26px}
+.brand{font-family:Poppins,sans-serif;font-size:23px;letter-spacing:-1px}
+.brand b{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));box-shadow:0 5px 14px rgba(181,31,42,.2)}
+.nav nav{font-family:'Noto Sans Gujarati',Poppins,sans-serif;font-size:13px;gap:21px}
+.nav nav a{color:#475463;font-weight:600}
+.nav nav a:hover,.nav nav .active{color:var(--brand)}
+.header-search{border-color:#d9dfe5;background:#fff}
+.category-bar{background:#fff;border-top:1px solid #eef1f3}
+.category-scroll{height:42px;font-size:12px;gap:27px}
+.category-scroll a{color:#596572}
+
+/* Breaking ticker */
+.breaking{background:var(--brand);box-shadow:inset 0 -1px rgba(0,0,0,.08)}
+.breaking-inner{min-height:43px;font-size:12px}
+.breaking strong{background:#fff;color:var(--brand);padding:4px 8px;border-radius:4px;font-size:9px;letter-spacing:1.2px}
+.breaking span{font-weight:500}
+.breaking a{color:#fff;font-weight:700}
+
+/* Utility strip */
+.market-strip{gap:12px;padding:18px 0}
+.market-strip a{
+  min-height:58px;border:1px solid var(--line);border-radius:12px;padding:11px 15px;
+  background:#fff;box-shadow:0 2px 8px rgba(20,37,54,.03)
+}
+.market-strip a:hover{border-color:#d5a2a6;transform:translateY(-1px);box-shadow:var(--shadow)}
+.market-strip span{font-size:11px;color:var(--muted)}
+.market-strip b{font-size:12px;font-weight:700}
+.market-strip em{color:#23824f}
+
+/* Hero */
+.home-lead{gap:22px;margin-top:4px}
+.lead-news{min-height:490px;border-radius:18px;box-shadow:var(--shadow)}
+.lead-news:after{background:linear-gradient(180deg,rgba(0,0,0,.02) 20%,rgba(7,13,19,.94) 100%)}
+.lead-overlay{padding:34px;max-width:900px}
+.lead-overlay .tag-light{display:inline-block;background:rgba(181,31,42,.92);color:#fff;padding:5px 9px;border-radius:4px;font-size:9px;letter-spacing:1px}
+.lead-overlay h1{
+  font-family:'Noto Sans Gujarati',Poppins,sans-serif;
+  font-size:clamp(28px,3.2vw,46px);line-height:1.22;letter-spacing:-.8px;font-weight:800;
+  margin:12px 0 10px
+}
+.lead-overlay p{font-size:13px;line-height:1.8;color:#e2e7eb}
+.lead-overlay .btn{
+  display:inline-flex;align-items:center;margin-top:4px;padding:9px 14px;border-radius:7px;
+  background:#fff;color:var(--brand);font-size:11px;font-weight:800
+}
+.side-news{gap:13px}
+.side-story{grid-template-columns:132px 1fr;gap:14px;padding:0 0 13px}
+.side-story img,.side-story .side-noimg{width:132px;height:94px;border-radius:10px}
+.side-story h3{font-size:14px;line-height:1.5;font-weight:700;margin:4px 0}
+.side-story .meta{font-size:9px}
+
+/* Section headings */
+.section,.home-section{padding:58px 0}
+.section-head{margin-bottom:23px}
+.section-head h2,.split-heading h2{
+  font-family:'Noto Sans Gujarati',Poppins,sans-serif;
+  font-size:29px;line-height:1.25;font-weight:800;letter-spacing:-.5px
+}
+.eyebrow{font-family:Poppins,sans-serif;color:var(--brand);font-size:9px;letter-spacing:1.6px}
+.section-head>a,.mini-heading a{font-size:11px;color:var(--brand);font-weight:800}
+
+/* Cards */
+.news-grid{gap:18px}
+.story{border:1px solid #e1e6ea;border-radius:14px;box-shadow:0 2px 7px rgba(20,37,54,.025)}
+.story:hover{transform:translateY(-3px);border-color:#d8b0b3;box-shadow:var(--shadow)}
+.story-art{height:205px;background:linear-gradient(145deg,#233244,#8f2028)}
+.story-art span{background:var(--brand);padding:5px 8px;border-radius:4px;font-size:8px}
+.story-body{padding:16px 16px 17px}
+.tag{color:var(--brand);font-size:8px}
+.story h3{
+  font-family:'Noto Sans Gujarati',Poppins,sans-serif;
+  font-size:16px;line-height:1.55;font-weight:700;letter-spacing:0;margin:7px 0
+}
+.story p{font-size:11px;line-height:1.75;color:#697580}
+.meta{font-family:Poppins,'Noto Sans Gujarati',sans-serif;font-size:9px;color:#8a949e}
+.tinted{background:#f7f8f9;border-color:#edf0f2}
+
+/* India/world lists */
+.two-column-news{gap:42px}
+.mini-heading{font-size:17px;padding-bottom:13px;border-bottom:2px solid var(--navy)}
+.mini-item{padding:14px 0;grid-template-columns:112px 1fr;gap:14px}
+.mini-item img{width:112px;height:76px;border-radius:8px}
+.mini-item h3{
+  font-family:'Noto Sans Gujarati',Poppins,sans-serif;
+  font-size:13px;line-height:1.55;font-weight:700
+}
+
+/* Daily desk */
+.dark-section{background:var(--navy)}
+.desk-grid a{background:#1b3144;border:1px solid rgba(255,255,255,.09);border-radius:13px}
+.desk-grid a:hover{background:#203a50;transform:translateY(-2px)}
+.desk-grid b{font-size:14px}
+.desk-grid small{font-size:10px;color:#aebbc6}
+
+/* Search / pages */
+.search-page h1,.market-page h1{
+  font-family:'Noto Sans Gujarati',Poppins,sans-serif;font-weight:800;letter-spacing:-1px
+}
+.big-search,.market-search{border-radius:12px;box-shadow:0 3px 14px rgba(20,37,54,.04)}
+.big-search button,.market-search button{background:var(--brand)}
+.big-search button:hover,.market-search button:hover{background:var(--brand-dark)}
+.filter button,.filter a,.city-grid button,.city-grid a{font-family:'Noto Sans Gujarati',Poppins,sans-serif}
+.filter .selected,.filter button:hover,.filter a:hover,.city-grid button:hover,.city-grid a:hover{background:var(--brand);border-color:var(--brand)}
+
+/* Article typography */
+.article-page{padding:68px 0 95px}
+.article-page h1{
+  font-family:'Noto Sans Gujarati',Poppins,sans-serif;
+  font-size:clamp(34px,4.5vw,58px);line-height:1.25;font-weight:800;letter-spacing:-1px
+}
+.article-en{font-family:Poppins,sans-serif;font-size:14px;line-height:1.7}
+.article-lead{
+  font-family:'Noto Sans Gujarati',sans-serif;
+  font-size:18px;line-height:2;color:#596673
+}
+.article-content{
+  font-family:'Noto Sans Gujarati',sans-serif;
+  font-size:17px;line-height:2;max-width:820px;color:#293540
+}
+.article-content p{margin-bottom:23px}
+.article-language button.active{background:var(--brand);border-color:var(--brand)}
+
+/* Footer */
+footer{background:#0d1822;padding:48px 0 20px}
+.footer-grid p,.footer-grid a{font-size:11px;line-height:1.7}
+.copyright{border-color:rgba(255,255,255,.09)}
+
+/* Mobile */
+@media(max-width:800px){
+  .wrap{width:min(var(--wrap),calc(100% - 24px))}
+  .topline{display:block}
+  .top-inner{height:29px}
+  .nav{min-height:64px}
+  .brand{font-size:20px}
+  .brand b{width:37px;height:37px}
+  .market-strip{gap:8px;padding:12px 0}
+  .market-strip a{min-height:54px;padding:9px 10px}
+  .home-lead{gap:14px}
+  .lead-news{min-height:390px;border-radius:15px}
+  .lead-overlay{padding:22px}
+  .lead-overlay h1{font-size:27px;line-height:1.3}
+  .lead-overlay p{font-size:11px;line-height:1.7}
+  .side-story h3{font-size:13px}
+  .section,.home-section{padding:42px 0}
+  .section-head h2,.split-heading h2{font-size:24px}
+}
+@media(max-width:520px){
+  .market-strip a{display:block}
+  .market-strip span,.market-strip b{display:block}
+  .market-strip b{margin-top:2px}
+  .lead-news{min-height:360px}
+  .story h3{font-size:16px}
+  .story p{font-size:11px}
+  .article-page{padding-top:42px}
+  .article-page h1{font-size:31px;line-height:1.3}
+  .article-lead{font-size:16px;line-height:1.9}
+  .article-content{font-size:16px;line-height:1.95}
+}
