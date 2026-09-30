@@ -25,11 +25,8 @@ async function api(path,opt={}){
     const r=await fetch(API+path,{...opt,signal:controller.signal,headers:{"Content-Type":"application/json",...(opt.headers||{})}});
     const j=await r.json();
     if(!r.ok)throw Error(j.error||"API error");
-    if(/^\/articles(?:\?|$)/.test(path)&&(!Array.isArray(j.articles)||j.articles.length===0))return staticNews(path);
-    if(/^\/article\//.test(path)&&!j.article)return staticNews(path);
     return j;
   }catch(e){
-    if(/^\/(articles|article\/)/.test(path))return staticNews(path);
     throw e;
   }finally{clearTimeout(timer)}
 }
