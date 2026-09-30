@@ -1,4 +1,4 @@
-const API="";
+const API="/api";
 const FALLBACK_DEMO=[];
 const IMAGE_FALLBACK="/assets/images/news-placeholder.svg";
 const hasGujarati=s=>/[\u0A80-\u0AFF]/.test(String(s||""));
