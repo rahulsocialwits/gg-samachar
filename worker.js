@@ -140,7 +140,6 @@ async function collect(env){
   return{fetched,published,skipped,errors,groq_errors:groqErrors,sources:sources.length,run_at:runAt,source_results:sourceResults};
 }
 async function getArticles(env,u){
-  await ensureSchema(env.DB);
   const limit=Math.min(Math.max(Number(u.searchParams.get("limit")||24),1),100);
   const page=Math.max(Number(u.searchParams.get("page")||1),1);
   const cat=u.searchParams.get("category"),city=u.searchParams.get("city"),q=u.searchParams.get("q");
@@ -148,7 +147,7 @@ async function getArticles(env,u){
   if(cat){where+=" AND category=?";p.push(cat)}
   if(city){where+=" AND city=?";p.push(city)}
   if(q){where+=" AND (title_gujarati LIKE ? OR title_english LIKE ? OR summary_gujarati LIKE ? OR summary_english LIKE ?)";const z="%"+q+"%";p.push(z,z,z,z)}
-  const sql="SELECT * FROM articles "+where+" ORDER BY datetime(published_at) DESC,id DESC LIMIT ? OFFSET ?";
+  const sql="SELECT id,source_name,source_url,title_original,title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,image_url,published_at,fetched_at,status,slug,seo_title,seo_description,tags FROM articles "+where+" ORDER BY datetime(published_at) DESC,id DESC LIMIT ? OFFSET ?";
   const [totalRow,r]=await Promise.all([
     env.DB.prepare("SELECT COUNT(*) total FROM articles "+where).bind(...p).first(),
     env.DB.prepare(sql).bind(...p,limit,(page-1)*limit).all()
