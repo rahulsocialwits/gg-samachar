@@ -1,0 +1,12 @@
+{
+  "name":"GG Samachar",
+  "short_name":"GG Samachar",
+  "description":"ગુજરાતી-first digital newsroom — ગુજરાત, ભારત અને વિશ્વના તાજા સમાચાર.",
+  "lang":"gu",
+  "dir":"ltr",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#ffffff",
+  "theme_color":"#c51f2b",
+  "icons":[]
+}
