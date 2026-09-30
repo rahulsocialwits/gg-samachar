@@ -87,13 +87,18 @@ async function collect(env){
       const items=parseFeed(await rr.text(),source);itemsCount=items.length;fetched+=items.length;
       for(const item of items.slice(0,6)){
         if(!item.url||!item.title)continue;
-        if(await env.DB.prepare("SELECT id FROM articles WHERE source_url=?").bind(item.url).first()){skipped++;continue}
+        const existing=await env.DB.prepare("SELECT id FROM articles WHERE source_url=?").bind(item.url).first();
         try{
           let a=null;try{a=await ai(env,item)}catch(e){groqErrors++}
           const fallbackCategory=/business|market|stock|share|economy|sensex|nifty|rupee|bank|company|mou|investment/i.test(item.title)?"Business":/sports|cricket|football|tennis|ipl|match|player/i.test(item.title)?"Sports":/tech|technology|artificial intelligence|\bai\b|iphone|google|microsoft|software/i.test(item.title)?"Technology":/movie|film|actor|actress|music|bollywood|entertainment/i.test(item.title)?"Entertainment":/world|america|pakistan|china|global|iran|israel|russia|ukraine/i.test(item.title)?"World":/gujarat|ahmedabad|surat|vadodara|rajkot|gandhinagar|kutch/i.test(item.title)?"Gujarat":"India";
           const publishedAt=isoDate(item.published,runAt),img=item.image||await articleImage(item.url)||"";
           const titleGu=a?.title_gujarati||item.title,titleEn=a?.title_english||item.title,summaryGu=a?.summary_gujarati||item.description||"",summaryEn=a?.summary_english||item.description||"",contentGu=a?.content_gujarati||summaryGu,contentEn=a?.content_english||summaryEn,slug=slugify(titleEn)+"-"+Date.now()+"-"+Math.floor(Math.random()*10000);
-          await env.DB.prepare("INSERT INTO articles(source_name,source_url,title_original,title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,image_url,image_width,image_height,published_at,fetched_at,status,slug,seo_title,seo_description,tags) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(source.name,item.url,item.title,titleGu,titleEn,summaryGu,summaryEn,contentGu,contentEn,a?.category||fallbackCategory,a?.city||"",img,1000,600,publishedAt,runAt,"published",slug,a?.seo_title||titleEn,a?.seo_description||summaryEn,Array.isArray(a?.tags)?a.tags.join(","):String(a?.tags||"")).run();published++;
+          if(existing){
+            await env.DB.prepare("UPDATE articles SET title_original=?,title_gujarati=?,title_english=?,summary_gujarati=?,summary_english=?,content_gujarati=?,content_english=?,category=?,city=?,image_url=?,published_at=?,fetched_at=?,seo_title=?,seo_description=?,tags=? WHERE id=?").bind(item.title,titleGu,titleEn,summaryGu,summaryEn,contentGu,contentEn,a?.category||fallbackCategory,a?.city||"",img,publishedAt,runAt,a?.seo_title||titleEn,a?.seo_description||summaryEn,Array.isArray(a?.tags)?a.tags.join(","):String(a?.tags||""),existing.id).run();
+            published++;
+          }else{
+            await env.DB.prepare("INSERT INTO articles(source_name,source_url,title_original,title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,image_url,image_width,image_height,published_at,fetched_at,status,slug,seo_title,seo_description,tags) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(source.name,item.url,item.title,titleGu,titleEn,summaryGu,summaryEn,contentGu,contentEn,a?.category||fallbackCategory,a?.city||"",img,1000,600,publishedAt,runAt,"published",slug,a?.seo_title||titleEn,a?.seo_description||summaryEn,Array.isArray(a?.tags)?a.tags.join(","):String(a?.tags||"")).run();published++;
+          }
         }catch(e){errors++}
       }
     }catch(e){status="error";error=String(e?.message||e);errors++}
