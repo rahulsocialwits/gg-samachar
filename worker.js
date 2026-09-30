@@ -50,6 +50,9 @@ async function ensureSchema(db){await db.batch([
   db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_city ON articles(city)")
 ]);for(const s of SOURCES)await db.prepare("INSERT INTO sources(name,feed_url,homepage_url,enabled) VALUES(?,?,?,1) ON CONFLICT(name) DO UPDATE SET feed_url=excluded.feed_url,homepage_url=excluded.homepage_url").bind(s.name,s.feed,s.home).run();for(const legacy of ["IAM Gujarat","Google News Gujarati","News18 Gujarati","ABP Asmita"])await db.prepare("UPDATE sources SET enabled=0 WHERE name=?").bind(legacy).run()}
 async function articleImage(url){if(!url)return"";try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000),r=await fetch(url,{signal:c.signal,headers:{"User-Agent":"Mozilla/5.0 GG-Samachar/1.0"}});clearTimeout(t);if(!r.ok)return"";const h=await r.text();const p=[/property=["']og:image["'][^>]+content=["']([^"']+)["']/i,/content=["']([^"']+)["'][^>]+property=["']og:image["']/i,/name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,/content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i];for(const x of p){const m=h.match(x);if(m?.[1])return m[1]}return""}catch{return""}}
+function hasGujarati(s){return /[\\u0A80-\\u0AFF]/.test(String(s||""))}
+function needsGujaratiTranslation(item){return !hasGujarati(item.title)&&!hasGujarati(item.description)&&!hasGujarati(item.content)}
+function validGujaratiOutput(a){return !!a&&hasGujarati(a.title_gujarati)&&hasGujarati(a.summary_gujarati)&&hasGujarati(a.content_gujarati)}
 async function ai(env,item){
   if(!env.GROQ_API_KEY)throw Error("GROQ_API_KEY is not configured");
   const model=env.AI_MODEL||"openai/gpt-oss-20b";
@@ -61,7 +64,7 @@ async function ai(env,item){
     source_url:item.url||""
   };
   const r=await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+env.GROQ_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model,temperature:.1,response_format:{type:"json_object"},messages:[
-    {role:"system",content:"You are the Gujarati editor for GG Samachar. Return ONLY valid JSON. Translate English/Hindi source material into natural, professional Gujarati; do not leave English sentences in Gujarati fields except proper names, brands, tickers, technical terms and unavoidable abbreviations. Preserve every factual detail supplied and never invent facts. title_gujarati, summary_gujarati and content_gujarati MUST be Gujarati. Also provide concise English versions. Choose exactly one category from: Gujarat, India, World, Business, Sports, Technology, Entertainment, Lifestyle. Determine category from the actual story, not generic words such as 'India' or a person's name. For city, return the main city if explicitly stated, otherwise empty. tags should be short comma-separated Gujarati/English search terms."},
+    {role:"system",content:"You are the Gujarati editor for GG Samachar. Return ONLY valid JSON. Translate English/Hindi source material into natural, professional Gujarati. This is a STRICT translation task: title_gujarati, summary_gujarati and content_gujarati MUST contain Gujarati script (Unicode U+0A80-U+0AFF) when the source is not already Gujarati. Do not copy English sentences into Gujarati fields. English is allowed only for proper names, brands, tickers, technical terms and unavoidable abbreviations. Preserve every factual detail supplied and never invent facts. Also provide concise English versions. Choose exactly one category from: Gujarat, India, World, Business, Sports, Technology, Entertainment, Lifestyle. Determine category from the actual story, not generic words such as 'India' or a person's name. For city, return the main city if explicitly stated, otherwise empty. tags should be short comma-separated Gujarati/English search terms."},
     {role:"user",content:JSON.stringify(prompt)}
   ]})},15000);
   if(!r.ok){const detail=await r.text().catch(()=>""),err=new Error("Groq "+r.status+(detail?" · "+detail.slice(0,240):""));err.code="GROQ_HTTP";throw err;}
@@ -89,10 +92,12 @@ async function collect(env){
         if(!item.url||!item.title)continue;
         const existing=await env.DB.prepare("SELECT id FROM articles WHERE source_url=?").bind(item.url).first();
         try{
-          let a=null;try{a=await ai(env,item)}catch(e){groqErrors++}
+          let a=null;let translationFailed=false;try{a=await ai(env,item);if(needsGujaratiTranslation(item)&&!validGujaratiOutput(a)){a=await ai(env,{...item,_forceGujarati:true});if(!validGujaratiOutput(a))throw Error("Groq returned non-Gujarati fields")}}catch(e){groqErrors++;translationFailed=true}
           const fallbackCategory=/business|market|stock|share|economy|sensex|nifty|rupee|bank|company|mou|investment/i.test(item.title)?"Business":/sports|cricket|football|tennis|ipl|match|player/i.test(item.title)?"Sports":/tech|technology|artificial intelligence|\bai\b|iphone|google|microsoft|software/i.test(item.title)?"Technology":/movie|film|actor|actress|music|bollywood|entertainment/i.test(item.title)?"Entertainment":/world|america|pakistan|china|global|iran|israel|russia|ukraine/i.test(item.title)?"World":/gujarat|ahmedabad|surat|vadodara|rajkot|gandhinagar|kutch/i.test(item.title)?"Gujarat":"India";
           const publishedAt=isoDate(item.published,runAt),img=item.image||await articleImage(item.url)||"";
-          const titleGu=a?.title_gujarati||item.title,titleEn=a?.title_english||item.title,summaryGu=a?.summary_gujarati||item.description||"",summaryEn=a?.summary_english||item.description||"",contentGu=a?.content_gujarati||summaryGu,contentEn=a?.content_english||summaryEn,slug=slugify(titleEn)+"-"+Date.now()+"-"+Math.floor(Math.random()*10000);
+          const oldGujarati=existing?await env.DB.prepare("SELECT title_gujarati,summary_gujarati,content_gujarati FROM articles WHERE id=?").bind(existing.id).first():null;
+          if(translationFailed&&needsGujaratiTranslation(item)&&!oldGujarati){errors++;continue}
+          const titleGu=translationFailed&&needsGujaratiTranslation(item)?(oldGujarati?.title_gujarati||""):((a?.title_gujarati&&validGujaratiOutput(a))?a.title_gujarati:item.title),titleEn=a?.title_english||item.title,summaryGu=translationFailed&&needsGujaratiTranslation(item)?(oldGujarati?.summary_gujarati||""):(a?.summary_gujarati||item.description||""),summaryEn=a?.summary_english||item.description||"",contentGu=translationFailed&&needsGujaratiTranslation(item)?(oldGujarati?.content_gujarati||summaryGu):(a?.content_gujarati||summaryGu),contentEn=a?.content_english||summaryEn,slug=slugify(titleEn)+"-"+Date.now()+"-"+Math.floor(Math.random()*10000);
           if(existing){
             await env.DB.prepare("UPDATE articles SET title_original=?,title_gujarati=?,title_english=?,summary_gujarati=?,summary_english=?,content_gujarati=?,content_english=?,category=?,city=?,image_url=?,published_at=?,fetched_at=?,seo_title=?,seo_description=?,tags=? WHERE id=?").bind(item.title,titleGu,titleEn,summaryGu,summaryEn,contentGu,contentEn,a?.category||fallbackCategory,a?.city||"",img,publishedAt,runAt,a?.seo_title||titleEn,a?.seo_description||summaryEn,Array.isArray(a?.tags)?a.tags.join(","):String(a?.tags||""),existing.id).run();
             published++;
@@ -105,7 +110,7 @@ async function collect(env){
     await env.DB.prepare("INSERT INTO source_health(source_id,name,checked_at,status,http_status,items,error,latency_ms) VALUES(?,?,?,?,?,?,?,?)").bind(source.id,source.name,runAt,status,httpStatus,itemsCount,error,Date.now()-started).run();
     sourceResults.push({id:source.id,name:source.name,status,http_status:httpStatus,items:itemsCount,error,latency_ms:Date.now()-started});
   }
-  const message="RSS → D1 · "+published+" published · "+groqErrors+" Groq fallbacks · "+errors+" errors";
+  const message="RSS → D1 · "+published+" published · "+groqErrors+" Groq/translation failures · "+errors+" errors";
   await env.DB.prepare("INSERT INTO publishing_logs(run_at,source_name,fetched,published,skipped,errors,message) VALUES(?,?,?,?,?,?,?)").bind(runAt,"ALL",fetched,published,skipped,errors,message).run();
   return{fetched,published,skipped,errors,groq_errors:groqErrors,sources:sources.length,run_at:runAt,source_results:sourceResults};
 }
