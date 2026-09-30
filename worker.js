@@ -53,10 +53,24 @@ async function articleImage(url){if(!url)return"";try{const c=new AbortControlle
 async function ai(env,item){
   if(!env.GROQ_API_KEY)throw Error("GROQ_API_KEY is not configured");
   const model=env.AI_MODEL||"openai/gpt-oss-20b";
-  const r=await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+env.GROQ_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model,temperature:.2,response_format:{type:"json_object"},messages:[{role:"system",content:"You are GG Samachar's factual Gujarati-first news editor. Rewrite only the supplied facts in original wording. Never invent facts. Return JSON with title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,seo_title,seo_description,tags."},{role:"user",content:JSON.stringify(item)}]})},15000);
+  const prompt={
+    source_title:item.title||"",
+    source_description:item.description||"",
+    source_content:item.content||"",
+    source_name:item.source_name||"",
+    source_url:item.url||""
+  };
+  const r=await fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+env.GROQ_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model,temperature:.1,response_format:{type:"json_object"},messages:[
+    {role:"system",content:"You are the Gujarati editor for GG Samachar. Return ONLY valid JSON. Translate English/Hindi source material into natural, professional Gujarati; do not leave English sentences in Gujarati fields except proper names, brands, tickers, technical terms and unavoidable abbreviations. Preserve every factual detail supplied and never invent facts. title_gujarati, summary_gujarati and content_gujarati MUST be Gujarati. Also provide concise English versions. Choose exactly one category from: Gujarat, India, World, Business, Sports, Technology, Entertainment, Lifestyle. Determine category from the actual story, not generic words such as 'India' or a person's name. For city, return the main city if explicitly stated, otherwise empty. tags should be short comma-separated Gujarati/English search terms."},
+    {role:"user",content:JSON.stringify(prompt)}
+  ]})},15000);
   if(!r.ok){const detail=await r.text().catch(()=>""),err=new Error("Groq "+r.status+(detail?" · "+detail.slice(0,240):""));err.code="GROQ_HTTP";throw err;}
   const j=await r.json();
-  return JSON.parse(j.choices?.[0]?.message?.content||"{}");
+  const raw=j.choices?.[0]?.message?.content||"{}";
+  const out=JSON.parse(raw);
+  const allowed=new Set(["Gujarat","India","World","Business","Sports","Technology","Entertainment","Lifestyle"]);
+  if(!allowed.has(out.category))out.category="";
+  return out;
 }
 async function collect(env){
   await ensureSchema(env.DB);
@@ -76,7 +90,7 @@ async function collect(env){
         if(await env.DB.prepare("SELECT id FROM articles WHERE source_url=?").bind(item.url).first()){skipped++;continue}
         try{
           let a=null;try{a=await ai(env,item)}catch(e){groqErrors++}
-          const fallbackCategory=/business|market|stock|share|economy|sensex|nifty/i.test(item.title)?"Business":/sports|cricket|football|tennis|ipl/i.test(item.title)?"Sports":/tech|technology|ai|iphone|google|microsoft/i.test(item.title)?"Technology":/india|national|bharat|delhi|mumbai/i.test(item.title)?"India":/world|america|pakistan|china|global|iran|israel|russia/i.test(item.title)?"World":"Gujarat";
+          const fallbackCategory=/business|market|stock|share|economy|sensex|nifty|rupee|bank|company|mou|investment/i.test(item.title)?"Business":/sports|cricket|football|tennis|ipl|match|player/i.test(item.title)?"Sports":/tech|technology|artificial intelligence|\bai\b|iphone|google|microsoft|software/i.test(item.title)?"Technology":/movie|film|actor|actress|music|bollywood|entertainment/i.test(item.title)?"Entertainment":/world|america|pakistan|china|global|iran|israel|russia|ukraine/i.test(item.title)?"World":/gujarat|ahmedabad|surat|vadodara|rajkot|gandhinagar|kutch/i.test(item.title)?"Gujarat":"India";
           const publishedAt=isoDate(item.published,runAt),img=item.image||await articleImage(item.url)||"";
           const titleGu=a?.title_gujarati||item.title,titleEn=a?.title_english||item.title,summaryGu=a?.summary_gujarati||item.description||"",summaryEn=a?.summary_english||item.description||"",contentGu=a?.content_gujarati||summaryGu,contentEn=a?.content_english||summaryEn,slug=slugify(titleEn)+"-"+Date.now()+"-"+Math.floor(Math.random()*10000);
           await env.DB.prepare("INSERT INTO articles(source_name,source_url,title_original,title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,image_url,image_width,image_height,published_at,fetched_at,status,slug,seo_title,seo_description,tags) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(source.name,item.url,item.title,titleGu,titleEn,summaryGu,summaryEn,contentGu,contentEn,a?.category||fallbackCategory,a?.city||"",img,1000,600,publishedAt,runAt,"published",slug,a?.seo_title||titleEn,a?.seo_description||summaryEn,Array.isArray(a?.tags)?a.tags.join(","):String(a?.tags||"")).run();published++;
