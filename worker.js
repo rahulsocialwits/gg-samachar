@@ -87,13 +87,17 @@ async function collect(env){
   const configured=await env.DB.prepare("SELECT id,name,feed_url,homepage_url FROM sources WHERE enabled=1 ORDER BY id").all();
   const sources=(configured.results||[]).filter(x=>x.feed_url);
   const sourceResults=[];
+  let newPublished=0;
+  const MAX_NEW_PER_RUN=3;
   for(const source of sources){
+    if(newPublished>=MAX_NEW_PER_RUN)break;
     const started=Date.now(); let status="ok",httpStatus=null,error="",itemsCount=0;
     try{
       const rr=await fetchWithTimeout(source.feed_url,{headers:{"User-Agent":"Mozilla/5.0 (compatible; GG-Samachar-NewsBot/1.0)","Accept":"application/rss+xml,application/atom+xml,text/xml,application/xml;q=0.9,*/*;q=0.8"}},12000);
       httpStatus=rr.status;if(!rr.ok)throw Error("HTTP "+rr.status);
       const items=parseFeed(await rr.text(),source);itemsCount=items.length;fetched+=items.length;
       for(const item of items.slice(0,6)){
+        if(newPublished>=MAX_NEW_PER_RUN)break;
         if(!item.url||!item.title)continue;
         const existing=await env.DB.prepare("SELECT id FROM articles WHERE source_url=?").bind(item.url).first();
         try{
@@ -107,7 +111,7 @@ async function collect(env){
             await env.DB.prepare("UPDATE articles SET title_original=?,title_gujarati=?,title_english=?,summary_gujarati=?,summary_english=?,content_gujarati=?,content_english=?,category=?,city=?,image_url=?,published_at=?,fetched_at=?,seo_title=?,seo_description=?,tags=? WHERE id=?").bind(item.title,titleGu,titleEn,summaryGu,summaryEn,contentGu,contentEn,a?.category||fallbackCategory,a?.city||"",img,publishedAt,runAt,a?.seo_title||titleEn,a?.seo_description||summaryEn,Array.isArray(a?.tags)?a.tags.join(","):String(a?.tags||""),existing.id).run();
             published++;
           }else{
-            await env.DB.prepare("INSERT INTO articles(source_name,source_url,title_original,title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,image_url,image_width,image_height,published_at,fetched_at,status,slug,seo_title,seo_description,tags) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(source.name,item.url,item.title,titleGu,titleEn,summaryGu,summaryEn,contentGu,contentEn,a?.category||fallbackCategory,a?.city||"",img,1000,600,publishedAt,runAt,"published",slug,a?.seo_title||titleEn,a?.seo_description||summaryEn,Array.isArray(a?.tags)?a.tags.join(","):String(a?.tags||"")).run();published++;
+            await env.DB.prepare("INSERT INTO articles(source_name,source_url,title_original,title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,image_url,image_width,image_height,published_at,fetched_at,status,slug,seo_title,seo_description,tags) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)").bind(source.name,item.url,item.title,titleGu,titleEn,summaryGu,summaryEn,contentGu,contentEn,a?.category||fallbackCategory,a?.city||"",img,1000,600,publishedAt,runAt,"published",slug,a?.seo_title||titleEn,a?.seo_description||summaryEn,Array.isArray(a?.tags)?a.tags.join(","):String(a?.tags||"")).run();published++;newPublished++;
           }
         }catch(e){errors++}
       }
@@ -115,7 +119,7 @@ async function collect(env){
     await env.DB.prepare("INSERT INTO source_health(source_id,name,checked_at,status,http_status,items,error,latency_ms) VALUES(?,?,?,?,?,?,?,?)").bind(source.id,source.name,runAt,status,httpStatus,itemsCount,error,Date.now()-started).run();
     sourceResults.push({id:source.id,name:source.name,status,http_status:httpStatus,items:itemsCount,error,latency_ms:Date.now()-started});
   }
-  const message="RSS → D1 · "+published+" published · "+groqErrors+" Groq/translation failures · "+errors+" errors";
+  const message="RSS → D1 · "+published+" published ("+newPublished+" new) · max 3 new/run · "+groqErrors+" Groq/translation failures · "+errors+" errors";
   await env.DB.prepare("INSERT INTO publishing_logs(run_at,source_name,fetched,published,skipped,errors,message) VALUES(?,?,?,?,?,?,?)").bind(runAt,"ALL",fetched,published,skipped,errors,message).run();
   return{fetched,published,skipped,errors,groq_errors:groqErrors,sources:sources.length,run_at:runAt,source_results:sourceResults};
 }
