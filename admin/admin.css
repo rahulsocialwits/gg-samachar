@@ -5,3 +5,15 @@
 .key-action:hover{background:#e7e9ed;color:#a4161b}
 #loginMsg{min-height:20px;margin-top:10px;font-size:12px;color:#a4161b}
 .login-label{display:block;font-size:11px;font-weight:700;margin:12px 0;color:#333}.login-label input{margin-top:6px!important}.login-card .key-input-wrap{margin:6px 0 14px}.login-card .key-input-wrap #loginPassword{margin:0;padding-right:65px}.login-card .key-action{position:absolute;right:5px;top:5px;margin:0}.login-card .primary{width:100%;margin-top:4px}
+.status-grid,.health-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:15px 0}
+.health-cards{grid-template-columns:repeat(3,1fr)}
+.health-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);gap:15px}
+.health-row b{display:block}.health-row small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.health{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 9px;font-size:9px;font-weight:800;white-space:nowrap}
+.health.good{background:#e8f7ef;color:var(--good)}.health.bad{background:#fdecec;color:var(--danger)}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}.hero-actions .ghost{background:#ffffff18;color:#fff}
+.big-number{font-size:42px;font-weight:800}.big-number small{font-size:12px;color:var(--muted)}
+.muted{color:var(--muted);font-size:10px}.source-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.source-actions{display:flex;gap:7px;margin-top:12px}
+.diag-status{margin:12px 0}pre{background:#111318;color:#d7dae0;padding:16px;border-radius:10px;overflow:auto;font-size:11px}
+@media(max-width:900px){.health-cards,.status-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.health-cards,.status-grid{grid-template-columns:1fr}}
