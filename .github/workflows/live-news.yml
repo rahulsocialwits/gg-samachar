@@ -17,6 +17,15 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      - name: Collect live news into Cloudflare D1
+        run: |
+          set -euo pipefail
+          BASE="https://gg-samachar.rahulsocialwits.workers.dev"
+          echo "=== Triggering D1 collector ==="
+          BODY="$(curl --fail --silent --show-error --max-time 180 "$BASE/collect")"
+          echo "$BODY"
+          echo "$BODY" | grep -q '"ok":true'
+          echo "D1 collector completed."
       - name: Fetch live RSS news
         run: bun scripts/fetch-news.mjs
       - name: Publish news.json
