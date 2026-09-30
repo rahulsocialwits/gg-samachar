@@ -147,13 +147,9 @@ async function getArticles(env,u){
   if(cat){where+=" AND category=?";p.push(cat)}
   if(city){where+=" AND city=?";p.push(city)}
   if(q){where+=" AND (title_gujarati LIKE ? OR title_english LIKE ? OR summary_gujarati LIKE ? OR summary_english LIKE ?)";const z="%"+q+"%";p.push(z,z,z,z)}
-  const sql="SELECT id,source_name,source_url,title_original,title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,image_url,published_at,fetched_at,status,slug,seo_title,seo_description,tags FROM articles "+where+" ORDER BY datetime(published_at) DESC,id DESC LIMIT ? OFFSET ?";
-  const [totalRow,r]=await Promise.all([
-    env.DB.prepare("SELECT COUNT(*) total FROM articles "+where).bind(...p).first(),
-    env.DB.prepare(sql).bind(...p,limit,(page-1)*limit).all()
-  ]);
-  const total=Number(totalRow?.total||0);
-  return{page,limit,count:r.results?.length||0,total,pages:Math.ceil(total/limit),articles:r.results||[]};
+  const sql="SELECT id,source_name,source_url,title_original,title_gujarati,title_english,summary_gujarati,summary_english,content_gujarati,content_english,category,city,image_url,published_at,fetched_at,status,slug,seo_title,seo_description,tags FROM articles "+where+" ORDER BY published_at DESC,id DESC LIMIT ? OFFSET ?";
+  const r=await env.DB.prepare(sql).bind(...p,limit,(page-1)*limit).all();
+  return{page,limit,count:r.results?.length||0,total:null,pages:null,articles:r.results||[]};
 }
 async function getCategories(env){await ensureSchema(env.DB);const r=await env.DB.prepare("SELECT * FROM categories WHERE enabled=1 ORDER BY sort_order,name").all();return r.results||[]}
 async function getPublicStats(env){
@@ -194,7 +190,7 @@ export default{async scheduled(event,env,ctx){ctx.waitUntil(collect(env))},async
   if(!env.DB)return json({ok:false,service:"GG Samachar API",version:"3.2.0",bindings:{GROQ_API_KEY:!!env.GROQ_API_KEY,DB:false},error:"D1 binding DB missing"},500);
   const db=await env.DB.prepare("SELECT 1 AS ok").first().then(()=>true).catch(()=>false);
   return json({ok:db,service:"GG Samachar API",version:"3.2.0",bindings:{GROQ_API_KEY:!!env.GROQ_API_KEY,DB:true},database:{query_ok:db},endpoints:["/api/health","/api/articles","/api/article/:slug","/api/sources","/api/categories","/api/stats","/api/weather","/api/calendar","/api/market","/admin/data","/admin/articles","/admin/sources","/admin/categories","/admin/logs","/admin/diagnostics","/admin/test-groq","/admin/test-source","/admin/source-toggle","/admin/collect"]},db?200:503);
-}if(!env.DB)return json({ok:false,error:"D1 binding DB missing"},500);if(u.pathname==="/api/articles")return json({ok:true,...await getArticles(env,u)});if(u.pathname.startsWith("/api/article/")){await ensureSchema(env.DB);const a=await env.DB.prepare("SELECT * FROM articles WHERE slug=? LIMIT 1").bind(decodeURIComponent(u.pathname.slice(13))).first();return a?json({ok:true,article:a}):json({ok:false,error:"Article not found"},404)}if(u.pathname==="/collect"){
+}if(!env.DB)return json({ok:false,error:"D1 binding DB missing"},500);if(u.pathname==="/api/articles")return new Response(JSON.stringify({ok:true,...await getArticles(env,u)}),{status:200,headers:{"Content-Type":"application/json;charset=utf-8","Cache-Control":"public, max-age=15, s-maxage=15, stale-while-revalidate=60",...CORS}});if(u.pathname.startsWith("/api/article/")){await ensureSchema(env.DB);const a=await env.DB.prepare("SELECT * FROM articles WHERE slug=? LIMIT 1").bind(decodeURIComponent(u.pathname.slice(13))).first();return a?json({ok:true,article:a}):json({ok:false,error:"Article not found"},404)}if(u.pathname==="/collect"){
   if(req.method!=="POST")return json({ok:false,error:"POST required"},405);
   const a=await requireAdmin(req,env);if(!a.ok)return json({ok:false,error:a.error},401);
   return json({ok:true,...await collect(env)});
