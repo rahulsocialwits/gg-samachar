@@ -58,7 +58,17 @@ jobs:
             '
           }
 
-          check_json "Health + D1 binding" "$BASE/api/health"
+          echo "=== Health + bindings ==="
+          HEALTH="$(curl --fail --silent --show-error --max-time 30 "$BASE/api/health")"
+          echo "$HEALTH"
+          printf '%s' "$HEALTH" | node -e '
+            let s="";
+            process.stdin.on("data",d=>s+=d);
+            process.stdin.on("end",()=>{
+              const j=JSON.parse(s);
+              if (j.ok !== true || j.bindings?.DB !== true || j.bindings?.GROQ_API_KEY !== true) process.exit(1);
+            });
+          '
           check_json "Articles + D1 query" "$BASE/api/articles?limit=1"
           check_json "Categories + D1 query" "$BASE/api/categories"
           check_json "Sources + D1 query" "$BASE/api/sources"
