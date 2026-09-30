@@ -20,3 +20,5 @@ database_id = "ca9bd599-b199-4acf-89be-19de97f3d0b1"
 
 [triggers]
 crons = ["*/30 * * * *"]
+
+# Routing hardened 2026-09-30
