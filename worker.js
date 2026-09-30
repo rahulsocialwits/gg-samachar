@@ -52,7 +52,7 @@ async function ensureSchema(db){await db.batch([
   db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_city ON articles(city)")
 ]);const defaults=["Gujarat","India","World","Business","Sports","Technology","Entertainment","Lifestyle"];for(let i=0;i<defaults.length;i++){const name=defaults[i],slug=slugify(name);await db.prepare("INSERT INTO categories(name,slug,enabled,sort_order) VALUES(?,?,1,?) ON CONFLICT(name) DO NOTHING").bind(name,slug,i).run()}for(const s of SOURCES)await db.prepare("INSERT INTO sources(name,feed_url,homepage_url,enabled) VALUES(?,?,?,1) ON CONFLICT(name) DO UPDATE SET feed_url=excluded.feed_url,homepage_url=excluded.homepage_url").bind(s.name,s.feed,s.home).run();for(const legacy of ["IAM Gujarat","Google News Gujarati","News18 Gujarati","ABP Asmita"])await db.prepare("UPDATE sources SET enabled=0 WHERE name=?").bind(legacy).run()}
 async function articleImage(url){if(!url)return"";try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000),r=await fetch(url,{signal:c.signal,headers:{"User-Agent":"Mozilla/5.0 GG-Samachar/1.0"}});clearTimeout(t);if(!r.ok)return"";const h=await r.text();const p=[/property=["']og:image["'][^>]+content=["']([^"']+)["']/i,/content=["']([^"']+)["'][^>]+property=["']og:image["']/i,/name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,/content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i];for(const x of p){const m=h.match(x);if(m?.[1])return m[1]}return""}catch{return""}}
-function hasGujarati(s){return /[\\u0A80-\\u0AFF]/.test(String(s||""))}
+function hasGujarati(s){return /[\u0A80-\u0AFF]/.test(String(s||""))}
 function needsGujaratiTranslation(item){return !hasGujarati(item.title)&&!hasGujarati(item.description)&&!hasGujarati(item.content)}
 function validGujaratiOutput(a){return !!a&&hasGujarati(a.title_gujarati)&&hasGujarati(a.summary_gujarati)&&hasGujarati(a.content_gujarati)}
 async function ai(env,item){
@@ -187,4 +187,4 @@ if(u.pathname==="/collect-now"){if(req.method!=="POST")return json({ok:false,err
     indices:{nifty50:byId("NIFTY50.INR.IDX"),bankNifty:byId("NIFTYBANK.INR.IDX"),sensex:byId("SENSEX.INR.IDX")},
     usdInr:fx,gainers,losers,active,search,
     note:"Market figures are daily reference snapshots, not intraday trading quotes."});
-}return json({ok:true,service:"GG Samachar API",version:"2.6.0",endpoints:["/health","/articles","/collect","/sources","/weather","/market","/admin/data","/admin/articles","/admin/sources","/admin/logs"]})}catch(e){return json({ok:false,error:String(e?.message||e)},500)}}};
+}return json({ok:true,service:"GG Samachar API",version:"3.0.0",endpoints:["/health","/articles","/article/:slug","/collect","/sources","/weather","/calendar","/market","/admin/data","/admin/articles","/admin/sources","/admin/categories","/admin/logs","/admin/diagnostics","/admin/test-groq","/admin/test-source","/admin/source-toggle"]})}catch(e){return json({ok:false,error:String(e?.message||e)},500)}}};
