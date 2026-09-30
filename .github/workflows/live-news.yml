@@ -22,7 +22,7 @@ jobs:
           set -euo pipefail
           BASE="https://gg-samachar.rahulsocialwits.workers.dev"
           echo "=== Triggering D1 collector ==="
-          BODY="$(curl --fail --silent --show-error --max-time 180 "$BASE/collect")"
+          BODY="$(curl --fail --silent --show-error --max-time 180 -X POST "$BASE/collect")"
           echo "$BODY"
           echo "$BODY" | grep -q '"ok":true'
           echo "D1 collector completed."
