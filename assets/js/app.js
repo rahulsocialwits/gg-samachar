@@ -104,7 +104,7 @@ async function initCalendar(){
     const c=$(".choghadiya .lead");if(c)c.textContent="મુંબઈ માટે આજનું તિથિ, નક્ષત્ર, સૂર્યોદય/સૂર્યાસ્ત અને રાહુકાળ.";
   }catch{el.innerHTML='<div class="empty">કેલેન્ડર સેવા હાલમાં ઉપલબ્ધ નથી. થોડીવાર પછી ફરી પ્રયાસ કરો.</div>'}
 }
-async async function initMarket(){
+async function initMarket(){
   const s=$("#marketStatus");if(!s)return;
   const money=v=>Number.isFinite(Number(v))?Number(v).toLocaleString("en-IN",{maximumFractionDigits:2}):"—";
   const pct=v=>Number.isFinite(Number(v))?(Number(v)>=0?"+":"")+Number(v).toFixed(2)+"%":"—";
