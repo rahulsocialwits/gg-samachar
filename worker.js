@@ -5,8 +5,8 @@ const CORS={
   "Access-Control-Allow-Headers":"Content-Type,Authorization,X-Admin-Key"
 };
 const SOURCES=[
-  {name:"TV9 Gujarati",feed:"https://tv9gujarati.com/gujarat/feed",home:"https://tv9gujarati.com/"},
-  {name:"Gujarat Samachar",feed:"https://www.gujaratsamachar.com/rss/top-stories",home:"https://www.gujaratsamachar.com/"},
+  {name:"TV9 Gujarati",feed:"https://tv9gujarati.com/feed",home:"https://tv9gujarati.com/"},
+  {name:"Hindustan Metro Gujarati",feed:"https://hindustanmetro.com/gujarati/rss/latest-posts",home:"https://hindustanmetro.com/gujarati/"},
   {name:"Divya Bhaskar",feed:"https://www.divyabhaskar.co.in/rss-feed/1037/",home:"https://www.divyabhaskar.co.in/"},
   {name:"News18 World",feed:"https://www.news18.com/rss/world.xml",home:"https://www.news18.com/"},
   {name:"The Hindu",feed:"https://www.thehindu.com/feeder/default.rss",home:"https://www.thehindu.com/"},
