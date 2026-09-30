@@ -34,3 +34,36 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      
+      - name: Smoke test public APIs and D1
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://gg-samachar.rahulsocialwits.workers.dev"
+
+          check_json() {
+            NAME="$1"
+            URL="$2"
+            echo "=== $NAME ==="
+            BODY="$(curl --fail --silent --show-error --max-time 30 "$URL")"
+            echo "$BODY"
+            printf '%s' "$BODY" | node -e '
+              let s="";
+              process.stdin.on("data",d=>s+=d);
+              process.stdin.on("end",()=>{
+                const j=JSON.parse(s);
+                if (j.ok !== true) process.exit(1);
+              });
+            '
+          }
+
+          check_json "Health + D1 binding" "$BASE/api/health"
+          check_json "Articles + D1 query" "$BASE/api/articles?limit=1"
+          check_json "Categories + D1 query" "$BASE/api/categories"
+          check_json "Sources + D1 query" "$BASE/api/sources"
+          check_json "Weather" "$BASE/api/weather?city=Mumbai"
+          check_json "Calendar" "$BASE/api/calendar?city=mumbai"
+          check_json "Market" "$BASE/api/market"
+
+          echo "All public API smoke tests passed."
