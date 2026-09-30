@@ -1,5 +1,11 @@
 const API="https://gg-samachar.rahulsocialwits.workers.dev";
 const FALLBACK_DEMO=[];
+const IMAGE_FALLBACK="https://gg-samachar.rahulsocialwits.workers.dev/assets/images/news-placeholder.svg";
+const hasGujarati=s=>/[\u0A80-\u0AFF]/.test(String(s||""));
+const guTitle=x=>hasGujarati(x?.title_gujarati)?x.title_gujarati:(hasGujarati(x?.title_original)?x.title_original:"ગુજરાતી અનુવાદ તૈયાર થઈ રહ્યો છે…");
+const guSummary=x=>hasGujarati(x?.summary_gujarati)?x.summary_gujarati:(hasGujarati(x?.summary_english)?x.summary_english:"સમાચારનો ગુજરાતી સારાંશ તૈયાર થઈ રહ્યો છે…");
+const guContent=x=>hasGujarati(x?.content_gujarati)?x.content_gujarati:guSummary(x);
+const safeImage=url=>url&&/^https?:\/\//i.test(String(url))?url:IMAGE_FALLBACK;
 
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -33,8 +39,14 @@ async function api(path,opt={}){
 function articleHref(slug){return "article.html?slug="+encodeURIComponent(slug||"")}
 function shareUrl(slug){return new URL(articleHref(slug),location.origin).href}
 function shareButtons(x){const u=shareUrl(x.slug),t=x.title_gujarati||x.title||"સમાચાર";return '<div class="share-actions" onclick="event.stopPropagation()"><button type="button" class="share-btn whatsapp" data-share="whatsapp" data-url="'+esc(u)+'" data-title="'+esc(t)+'">WhatsApp</button><button type="button" class="share-btn" data-share="native" data-url="'+esc(u)+'" data-title="'+esc(t)+'">↗ Share</button></div>'}
-function card(x){const img=x.image_url?'<img src="'+esc(x.image_url)+'" alt="'+esc(x.title_gujarati||"")+'" loading="lazy">':"";return '<article class="story"><a class="story-link" href="'+articleHref(x.slug)+'"><div class="story-art '+(img?"has-image":"")+'">'+img+'<span>'+esc(x.category||"સમાચાર")+'</span></div><div class="story-body"><div class="tag">'+esc(x.category||"સમાચાર")+'</div><h3>'+esc(x.title_gujarati||x.title||"સમાચાર")+'</h3><p>'+esc(x.summary_gujarati||x.summary||"")+'</p><div class="meta">'+esc(x.source_name||"GG Samachar")+' · '+(x.published_at?new Date(x.published_at).toLocaleDateString("gu-IN"):"હમણાં")+'</div></div></a>'+shareButtons(x)+'</article>'}
-function miniCard(x){const img=x.image_url?'<img src="'+esc(x.image_url)+'" alt="" loading="lazy">':'<div class="side-noimg"></div>';return '<a class="mini-item" href="'+articleHref(x.slug)+'">'+img+'<div><div class="tag">'+esc(x.category||"સમાચાર")+'</div><h3>'+esc(x.title_gujarati||x.title||"")+'</h3><div class="meta">'+esc(x.source_name||"GG Samachar")+'</div></div></a>'}
+function card(x){
+  const title=guTitle(x),summary=guSummary(x),img=safeImage(x.image_url);
+  return '<article class="story"><a class="story-link" href="'+articleHref(x.slug)+'"><div class="story-art has-image"><img src="'+esc(img)+'" alt="'+esc(title)+'" loading="lazy" onerror="this.onerror=null;this.src=\''+IMAGE_FALLBACK+'\'"><span>'+esc(x.category||"સમાચાર")+'</span></div><div class="story-body"><div class="tag">'+esc(x.category||"સમાચાર")+'</div><h3>'+esc(title)+'</h3><p>'+esc(summary)+'</p><div class="meta">'+esc(x.source_name||"GG Samachar")+' · '+(x.published_at?new Date(x.published_at).toLocaleDateString("gu-IN"):"હમણાં")+'</div></div></a>'+shareButtons(x)+'</article>'
+}
+function miniCard(x){
+  const img=safeImage(x.image_url),title=guTitle(x);
+  return '<a class="mini-item" href="'+articleHref(x.slug)+'"><img src="'+esc(img)+'" alt="'+esc(title)+'" loading="lazy" onerror="this.onerror=null;this.src=\''+IMAGE_FALLBACK+'\'"><div><div class="tag">'+esc(x.category||"સમાચાર")+'</div><h3>'+esc(title)+'</h3><div class="meta">'+esc(x.source_name||"GG Samachar")+'</div></div></a>'
+}
 async function homeNews(){const grid=$("#newsGrid");if(!grid)return;try{const j=await api("/articles?limit=24&_t="+Date.now()),d=j.articles||[];const first=d[0];if(!first){grid.innerHTML='<div class="empty">હાલમાં સમાચાર ઉપલબ્ધ નથી.</div>';return}$("#ticker")&&( $("#ticker").textContent=first.title_gujarati||first.title );
 const hero=$("#heroStory");hero.innerHTML=(first.image_url?'<img src="'+esc(first.image_url)+'" alt="">':"")+'<div class="lead-overlay"><div class="tag-light">FEATURED · '+esc(first.category||"NEWS")+'</div><h1>'+esc(first.title_gujarati||"")+'</h1><p>'+esc(first.summary_gujarati||first.summary_english||"")+'</p><a class="btn" href="article.html?slug='+encodeURIComponent(first.slug)+'">પૂર્ણ સમાચાર વાંચો →</a></div>';
 $("#sideStories").innerHTML=d.slice(1,5).map(miniCard).join("")||'<div class="empty">વધુ સમાચાર માટે Latest જુઓ.</div>';
@@ -57,10 +69,10 @@ async function initArticle(){
   const slug=new URLSearchParams(location.search).get("slug");
   if(!slug){el.innerHTML='<div class="empty"><strong>Article not found.</strong><br><a class="btn-link" href="latest.html">તાજા સમાચાર જુઓ →</a></div>';return}
   const renderArticle=a=>{
-    document.title=(a.title_gujarati||"સમાચાર")+" — GG Samachar";
-    const bodyGu=(a.content_gujarati||a.summary_gujarati||"").split(/\n+/).filter(Boolean).map(p=>"<p>"+esc(p)+"</p>").join("");
+    document.title=guTitle(a)+" — GG Samachar";
+    const bodyGu=guContent(a).split(/\n+/).filter(Boolean).map(p=>"<p>"+esc(p)+"</p>").join("");
     const bodyEn=(a.content_english||a.summary_english||"").split(/\n+/).filter(Boolean).map(p=>"<p>"+esc(p)+"</p>").join("");
-    el.innerHTML='<div class="article-top"><span class="eyebrow">'+esc(a.category||"સમાચાર")+'</span><h1>'+esc(a.title_gujarati||a.title||"સમાચાર")+'</h1><p class="article-en">'+esc(a.title_english||"")+'</p><div class="meta">'+esc(a.source_name||"GG Samachar")+' · '+(a.published_at?new Date(a.published_at).toLocaleString("gu-IN"):"હમણાં")+'</div></div>'+shareButtons(a)+(a.image_url?'<img class="article-feature-image" src="'+esc(a.image_url)+'" alt="" loading="eager">':"")+'<p class="article-lead">'+esc(a.summary_gujarati||"")+'</p><div class="article-language"><button class="active" data-lang="gu">ગુજરાતી</button><button data-lang="en">English</button></div><div id="articleContent" class="article-content">'+bodyGu+'</div><div class="source-box">'+(a.source_url&&/^https?:/i.test(a.source_url)?'Source: <a href="'+esc(a.source_url)+'" target="_blank" rel="noopener noreferrer">Original source ↗</a>':"GG Samachar newsroom")+'</div>';
+    el.innerHTML='<div class="article-top"><span class="eyebrow">'+esc(a.category||"સમાચાર")+'</span><h1>'+esc(guTitle(a))+'</h1><p class="article-en">'+esc(a.title_english||"")+'</p><div class="meta">'+esc(a.source_name||"GG Samachar")+' · '+(a.published_at?new Date(a.published_at).toLocaleString("gu-IN"):"હમણાં")+'</div></div>'+shareButtons(a)+(a.image_url?'<img class="article-feature-image" src="'+esc(a.image_url)+'" alt="" loading="eager">':"")+'<p class="article-lead">'+esc(guSummary(a))+'</p><div class="article-language"><button class="active" data-lang="gu">ગુજરાતી</button><button data-lang="en">English</button></div><div id="articleContent" class="article-content">'+bodyGu+'</div><div class="source-box">'+(a.source_url&&/^https?:/i.test(a.source_url)?'Source: <a href="'+esc(a.source_url)+'" target="_blank" rel="noopener noreferrer">Original source ↗</a>':"GG Samachar newsroom")+'</div>';
     const c=$("#articleContent");
     $$(".article-language button").forEach(b=>b.onclick=()=>{const enMode=b.dataset.lang==="en";$$(".article-language button").forEach(x=>x.classList.toggle("active",x===b));c.innerHTML=enMode?bodyEn:bodyGu});
   };
