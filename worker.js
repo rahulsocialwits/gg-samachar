@@ -90,16 +90,15 @@ async function collect(env){
   let newPublished=0;
   const MAX_NEW_PER_RUN=3;
   for(const source of sources){
-    if(newPublished>=MAX_NEW_PER_RUN)break;
     const started=Date.now(); let status="ok",httpStatus=null,error="",itemsCount=0;
     try{
       const rr=await fetchWithTimeout(source.feed_url,{headers:{"User-Agent":"Mozilla/5.0 (compatible; GG-Samachar-NewsBot/1.0)","Accept":"application/rss+xml,application/atom+xml,text/xml,application/xml;q=0.9,*/*;q=0.8"}},12000);
       httpStatus=rr.status;if(!rr.ok)throw Error("HTTP "+rr.status);
       const items=parseFeed(await rr.text(),source);itemsCount=items.length;fetched+=items.length;
       for(const item of items.slice(0,6)){
-        if(newPublished>=MAX_NEW_PER_RUN)break;
         if(!item.url||!item.title)continue;
         const existing=await env.DB.prepare("SELECT id FROM articles WHERE source_url=?").bind(item.url).first();
+        if(!existing&&newPublished>=MAX_NEW_PER_RUN){skipped++;continue;}
         try{
           let a=null;let translationFailed=false;try{a=await ai(env,item);if(needsGujaratiTranslation(item)&&!validGujaratiOutput(a)){a=await ai(env,{...item,_forceGujarati:true});if(!validGujaratiOutput(a))throw Error("Groq returned non-Gujarati fields")}}catch(e){groqErrors++;translationFailed=true}
           const fallbackCategory=/business|market|stock|share|economy|sensex|nifty|rupee|bank|company|mou|investment/i.test(item.title)?"Business":/sports|cricket|football|tennis|ipl|match|player/i.test(item.title)?"Sports":/tech|technology|artificial intelligence|\bai\b|iphone|google|microsoft|software/i.test(item.title)?"Technology":/movie|film|actor|actress|music|bollywood|entertainment/i.test(item.title)?"Entertainment":/world|america|pakistan|china|global|iran|israel|russia|ukraine/i.test(item.title)?"World":/gujarat|ahmedabad|surat|vadodara|rajkot|gandhinagar|kutch/i.test(item.title)?"Gujarat":"India";
