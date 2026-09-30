@@ -3,3 +3,4 @@ wrangler.toml
 README.md
 .github/
 .gitignore
+assets/data/news.json
