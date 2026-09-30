@@ -1,4 +1,5 @@
 // GG Samachar Worker — deployment pipeline verified for Node 22 / Wrangler 4
+// Cron refresh: keep the 30-minute D1 collector schedule registered on deploy.
 const CORS={
   "Access-Control-Allow-Origin":"*",
   "Access-Control-Allow-Methods":"GET,POST,PUT,PATCH,DELETE,OPTIONS",
