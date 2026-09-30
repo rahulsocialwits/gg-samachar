@@ -1,6 +1,10 @@
 name: GG Samachar Live News
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - "scripts/fetch-news.mjs"
+      - ".github/workflows/live-news.yml"
   schedule:
     - cron: "*/30 * * * *"
 permissions:
