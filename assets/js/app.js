@@ -1,6 +1,6 @@
-const API="https://gg-samachar.rahulsocialwits.workers.dev";
+const API="";
 const FALLBACK_DEMO=[];
-const IMAGE_FALLBACK="https://gg-samachar.rahulsocialwits.workers.dev/assets/images/news-placeholder.svg";
+const IMAGE_FALLBACK="/assets/images/news-placeholder.svg";
 const hasGujarati=s=>/[\u0A80-\u0AFF]/.test(String(s||""));
 const guTitle=x=>hasGujarati(x?.title_gujarati)?x.title_gujarati:(hasGujarati(x?.title_original)?x.title_original:"ગુજરાતી અનુવાદ તૈયાર થઈ રહ્યો છે…");
 const guSummary=x=>hasGujarati(x?.summary_gujarati)?x.summary_gujarati:(hasGujarati(x?.summary_english)?x.summary_english:"સમાચારનો ગુજરાતી સારાંશ તૈયાર થઈ રહ્યો છે…");
