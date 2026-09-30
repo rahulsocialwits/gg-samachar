@@ -70,6 +70,7 @@ jobs:
             });
           '
           check_json "Articles + D1 query" "$BASE/api/articles?limit=1"
+          check_json "Collector status + D1 query" "$BASE/api/collector-status"
           check_json "Categories + D1 query" "$BASE/api/categories"
           check_json "Sources + D1 query" "$BASE/api/sources"
           check_json "Weather" "$BASE/api/weather?city=Mumbai"
