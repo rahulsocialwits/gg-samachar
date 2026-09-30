@@ -41,16 +41,24 @@ async function requireAdmin(req,env){
   return{ok:false,error:"Unauthorized"};
 }
 async function admin(req,env){return (await requireAdmin(req,env)).ok}
-async function ensureSchema(db){await db.batch([
+let schemaReady=null;
+async function ensureSchema(db){
+  if(schemaReady)return schemaReady;
+  schemaReady=(async()=>{
+    await db.batch([
   db.prepare("CREATE TABLE IF NOT EXISTS articles(id INTEGER PRIMARY KEY AUTOINCREMENT,source_name TEXT NOT NULL,source_url TEXT NOT NULL UNIQUE,source_article_id TEXT,title_original TEXT,title_gujarati TEXT NOT NULL,title_english TEXT,summary_gujarati TEXT,summary_english TEXT,content_gujarati TEXT,content_english TEXT,category TEXT,city TEXT,image_url TEXT,image_width INTEGER DEFAULT 1000,image_height INTEGER DEFAULT 600,published_at TEXT,fetched_at TEXT NOT NULL,status TEXT DEFAULT 'published',slug TEXT UNIQUE,seo_title TEXT,seo_description TEXT,tags TEXT,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
   db.prepare("CREATE TABLE IF NOT EXISTS sources(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE,feed_url TEXT,homepage_url TEXT,enabled INTEGER DEFAULT 1,notes TEXT)"),
   db.prepare("CREATE TABLE IF NOT EXISTS categories(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL UNIQUE,slug TEXT NOT NULL UNIQUE,enabled INTEGER DEFAULT 1,sort_order INTEGER DEFAULT 0,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)"),
   db.prepare("CREATE TABLE IF NOT EXISTS admin_sessions(id INTEGER PRIMARY KEY AUTOINCREMENT,token_hash TEXT NOT NULL UNIQUE,expires_at TEXT NOT NULL)"),
   db.prepare("CREATE TABLE IF NOT EXISTS publishing_logs(id INTEGER PRIMARY KEY AUTOINCREMENT,run_at TEXT NOT NULL,source_name TEXT,fetched INTEGER DEFAULT 0,published INTEGER DEFAULT 0,skipped INTEGER DEFAULT 0,errors INTEGER DEFAULT 0,message TEXT)"),db.prepare("CREATE TABLE IF NOT EXISTS source_health(id INTEGER PRIMARY KEY AUTOINCREMENT,source_id INTEGER,name TEXT NOT NULL,checked_at TEXT NOT NULL,status TEXT NOT NULL,http_status INTEGER,items INTEGER DEFAULT 0,error TEXT,latency_ms INTEGER)"),
   db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_published_at ON articles(published_at DESC)"),
+  db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_status_published_at ON articles(status,published_at DESC)")
   db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category)"),
   db.prepare("CREATE INDEX IF NOT EXISTS idx_articles_city ON articles(city)")
 ]);const defaults=["Gujarat","India","World","Business","Sports","Technology","Entertainment","Lifestyle"];for(let i=0;i<defaults.length;i++){const name=defaults[i],slug=slugify(name);await db.prepare("INSERT INTO categories(name,slug,enabled,sort_order) VALUES(?,?,1,?) ON CONFLICT(name) DO NOTHING").bind(name,slug,i).run()}for(const s of SOURCES)await db.prepare("INSERT INTO sources(name,feed_url,homepage_url,enabled) VALUES(?,?,?,1) ON CONFLICT(name) DO UPDATE SET feed_url=excluded.feed_url,homepage_url=excluded.homepage_url").bind(s.name,s.feed,s.home).run();for(const legacy of ["IAM Gujarat","Google News Gujarati","News18 Gujarati","ABP Asmita"])await db.prepare("UPDATE sources SET enabled=0 WHERE name=?").bind(legacy).run()}
+  })().catch(e=>{schemaReady=null;throw e});
+  return schemaReady;
+}
 async function articleImage(url){if(!url)return"";try{const c=new AbortController(),t=setTimeout(()=>c.abort(),6000),r=await fetch(url,{signal:c.signal,headers:{"User-Agent":"Mozilla/5.0 GG-Samachar/1.0"}});clearTimeout(t);if(!r.ok)return"";const h=await r.text();const p=[/property=["']og:image["'][^>]+content=["']([^"']+)["']/i,/content=["']([^"']+)["'][^>]+property=["']og:image["']/i,/name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,/content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i];for(const x of p){const m=h.match(x);if(m?.[1])return m[1]}return""}catch{return""}}
 function hasGujarati(s){return /[\u0A80-\u0AFF]/.test(String(s||""))}
 function needsGujaratiTranslation(item){return !hasGujarati(item.title)&&!hasGujarati(item.description)&&!hasGujarati(item.content)}
@@ -133,9 +141,11 @@ async function getArticles(env,u){
   if(cat){where+=" AND category=?";p.push(cat)}
   if(city){where+=" AND city=?";p.push(city)}
   if(q){where+=" AND (title_gujarati LIKE ? OR title_english LIKE ? OR summary_gujarati LIKE ? OR summary_english LIKE ?)";const z="%"+q+"%";p.push(z,z,z,z)}
-  const totalRow=await env.DB.prepare("SELECT COUNT(*) total FROM articles "+where).bind(...p).first();
   const sql="SELECT * FROM articles "+where+" ORDER BY datetime(published_at) DESC,id DESC LIMIT ? OFFSET ?";
-  const r=await env.DB.prepare(sql).bind(...p,limit,(page-1)*limit).all();
+  const [totalRow,r]=await Promise.all([
+    env.DB.prepare("SELECT COUNT(*) total FROM articles "+where).bind(...p).first(),
+    env.DB.prepare(sql).bind(...p,limit,(page-1)*limit).all()
+  ]);
   const total=Number(totalRow?.total||0);
   return{page,limit,count:r.results?.length||0,total,pages:Math.ceil(total/limit),articles:r.results||[]};
 }
