@@ -76,4 +76,11 @@ jobs:
           check_json "Calendar" "$BASE/api/calendar?city=mumbai"
           check_json "Market" "$BASE/api/market"
 
-          echo "All public API smoke tests passed."
+          echo "=== Website assets ==="
+          for URL in "$BASE/" "$BASE/index.html" "$BASE/assets/css/style.css" "$BASE/assets/js/app.js"; do
+            echo "Checking $URL"
+            curl --fail --silent --show-error --max-time 30 -I "$URL" >/dev/null
+          done
+          echo "Website asset smoke tests passed."
+
+          echo "All public API + website smoke tests passed."
