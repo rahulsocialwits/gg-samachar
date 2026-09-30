@@ -8,7 +8,7 @@ const SOURCES=[
 ];
 const clean=s=>String(s||"").replace(/<!\[CDATA\[/gi,"").replace(/\]\]>/gi,"").replace(/<[^>]+>/g," ").replace(/&amp;/gi,"&").replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/&lt;/gi,"<").replace(/&gt;/gi,">").replace(/&nbsp;/gi," ").replace(/\s+/g," ").trim();
 const tag=(b,n)=>clean(b.match(new RegExp("<"+n+"(?:\\:[^ >]+)?[^>]*>([\\s\\S]*?)</"+n+">","i"))?.[1]||"");
-const attr=(b,n)=>b.match(new RegExp(n+"\\s*=\\s*[\\"']([^\\"']+)[\\"']","i"))?.[1]||"";
+const attr=(b,n)=>{const d=b.match(new RegExp(n+"\\s*=\\s*\"([^\"]+)\"","i"))||b.match(new RegExp(n+"\\s*=\\s*'([^']+)'","i"));return d?.[1]||""};
 function parse(xml,source){const blocks=xml.match(/<item\b[\s\S]*?<\/item>/gi)||xml.match(/<entry\b[\s\S]*?<\/entry>/gi)||[];return blocks.slice(0,12).map(b=>{const link=b.match(/<link\b[^>]*>/i)?.[0]||"";const media=b.match(/<(?:media:content|media:thumbnail|enclosure)\b[^>]*>/i)?.[0]||"";return{source_name:source,url:tag(b,"link")||attr(link,"href")||attr(b,"href"),title:tag(b,"title"),summary:tag(b,"description")||tag(b,"summary")||tag(b,"content:encoded")||tag(b,"content"),published:tag(b,"pubDate")||tag(b,"published")||tag(b,"updated")||tag(b,"dc:date"),image_url:attr(media,"url")||attr(media,"href")}}).filter(x=>x.url&&x.title)}
 function hash(s){let h=0;for(let i=0;i<s.length;i++)h=((h<<5)-h)+s.charCodeAt(i)|0;return Math.abs(h)}
 function category(t){const x=t.toLowerCase();if(/world|america|china|pakistan|global|iran|israel|russia/.test(x))return"World";if(/tech|technology|ai|iphone|google|microsoft|software|cyber/.test(x))return"Technology";if(/india|delhi|mumbai|national|modi|supreme court/.test(x))return"India";return"Gujarat"}
