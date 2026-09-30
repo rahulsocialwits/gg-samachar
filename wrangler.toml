@@ -5,7 +5,7 @@ compatibility_date = "2026-09-28"
 [[d1_databases]]
 binding = "DB"
 database_name = "gg-samachar-db"
-database_id = "166a7bf9-95a2-4537-aabe-2f728485e7e9"
+database_id = "ca9bd599-b199-4acf-89be-19de97f3d0b1"
 
 [triggers]
 crons = ["*/30 * * * *"]
