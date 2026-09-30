@@ -7,31 +7,10 @@ directory = "."
 binding = "ASSETS"
 not_found_handling = "404-page"
 run_worker_first = [
-  "/health",
-  "/articles",
-  "/article/*",
+  "/api/*",
   "/collect",
   "/collect-now",
-  "/sources",
-  "/categories",
-  "/weather",
-  "/calendar",
-  "/market",
-  "/admin/login",
-  "/admin/me",
-  "/admin/logout",
-  "/admin/diagnostics",
-  "/admin/test-groq",
-  "/admin/test-source",
-  "/admin/source-toggle",
-  "/admin/categories",
-  "/admin/categories/*",
-  "/admin/data",
-  "/admin/collect",
-  "/admin/articles",
-  "/admin/articles/*",
-  "/admin/sources",
-  "/admin/logs"
+  "/admin/*"
 ]
 
 [[d1_databases]]
