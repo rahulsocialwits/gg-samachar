@@ -99,7 +99,7 @@ async function initCalendar(){
   try{
     const j=await api("/calendar?city=mumbai&date="+iso+"&_t="+Date.now());
     const x=j.data||{};
-    const keys=[["તારીખ",x.date||iso],["તિથિ",label(x.tithi)],["પક્ષ",label(x.paksha)],["નક્ષત્ર",label(x.nakshatra)],["યોગ",label(x.yoga)],["કરણ",label(x.karana)],["સૂર્યોદય",label(x.sunrise)],["સૂર્યાસ્ત",label(x.sunset)],["રાહુકાળ",label(x.rahu_kalam||x.rahuKalam)]];
+    const mins=v=>{const n=Number(v);if(!Number.isFinite(n))return label(v);const day=Math.floor(n/1440),m=n%1440,h=Math.floor(m/60),mi=Math.round(m%60);return (day?"આગળના દિવસે ":"")+String(h).padStart(2,"0")+":"+String(mi).padStart(2,"0")}; const keys=[["તારીખ",x.date||iso],["તિથિ",label(x.tithi_name||x.tithi)],["પક્ષ",label(x.paksha)],["નક્ષત્ર",label(x.nakshatra_name||x.nakshatra)],["યોગ",label(x.yoga_name||x.yoga)],["કરણ",label(x.karana_name||x.karana)],["સૂર્યોદય",mins(x.sunrise)],["સૂર્યાસ્ત",mins(x.sunset)],["રાહુકાળ",mins(x.rahu_kalam||x.rahuKalam)],["યમગંડ",mins(x.yamagandam)],["ગુલિકાઈ",mins(x.gulikai)],["ચંદ્રોદય",mins(x.moonrise)],["ચંદ્રાસ્ત",mins(x.moonset)]];
     el.innerHTML=keys.map(([k,v])=>'<div><small>'+esc(k)+'</small><b>'+esc(v)+'</b></div>').join("");
     const c=$(".choghadiya .lead");if(c)c.textContent="મુંબઈ માટે આજનું તિથિ, નક્ષત્ર, સૂર્યોદય/સૂર્યાસ્ત અને રાહુકાળ.";
   }catch{el.innerHTML='<div class="empty">કેલેન્ડર સેવા હાલમાં ઉપલબ્ધ નથી. થોડીવાર પછી ફરી પ્રયાસ કરો.</div>'}
