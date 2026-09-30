@@ -103,7 +103,7 @@ async function collect(env){
         try{
           let a=null;let translationFailed=false;try{a=await ai(env,item);if(needsGujaratiTranslation(item)&&!validGujaratiOutput(a)){a=await ai(env,{...item,_forceGujarati:true});if(!validGujaratiOutput(a))throw Error("Groq returned non-Gujarati fields")}}catch(e){groqErrors++;translationFailed=true}
           const fallbackCategory=/business|market|stock|share|economy|sensex|nifty|rupee|bank|company|mou|investment/i.test(item.title)?"Business":/sports|cricket|football|tennis|ipl|match|player/i.test(item.title)?"Sports":/tech|technology|artificial intelligence|\bai\b|iphone|google|microsoft|software/i.test(item.title)?"Technology":/movie|film|actor|actress|music|bollywood|entertainment/i.test(item.title)?"Entertainment":/world|america|pakistan|china|global|iran|israel|russia|ukraine/i.test(item.title)?"World":/gujarat|ahmedabad|surat|vadodara|rajkot|gandhinagar|kutch/i.test(item.title)?"Gujarat":"India";
-          const publishedAt=isoDate(item.published,runAt);let img=item.image||"";if(!img)img=await articleImage(item.url);if(!/^https?:\/\//i.test(img))img=PLACEHOLDER_IMAGE;
+          const publishedAt=isoDate(item.published,runAt);let img=item.image||"";if(!img)img=await articleImage(item.url);if(!(String(img).startsWith("http://")||String(img).startsWith("https://")))img=PLACEHOLDER_IMAGE;
           const oldGujarati=existing?await env.DB.prepare("SELECT title_gujarati,summary_gujarati,content_gujarati FROM articles WHERE id=?").bind(existing.id).first():null;
           const oldGujaratiValid=!!oldGujarati&&validGujaratiOutput(oldGujarati);
           if(translationFailed&&needsGujaratiTranslation(item)&&!oldGujaratiValid){errors++;continue}
